@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trip Budgeter</title>
+<style>
+:root{--p:#4f46e5;--pd:#3730a3;--c:#06b6d4;--a:#f59e0b;--g:#10b981;--r:#ef4444;--bg:#f1f5f9;--w:#fff;--t:#1e293b;--m:#64748b;--b:#e2e8f0;--sh:0 1px 3px rgba(0,0,0,.1)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--t);min-height:100vh}
+/* header */
+.hdr{background:linear-gradient(135deg,#1e1b4b,#3730a3 40%,#1d4ed8 70%,#0891b2);color:#fff;padding:1.25rem 1.75rem;position:sticky;top:0;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.htop{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;flex-wrap:wrap}
+.logo{font-size:1.35rem;font-weight:700;white-space:nowrap}
+.srch{display:flex;gap:.5rem;flex:1;max-width:480px}
+.ci{flex:1;padding:.6rem 1.1rem;border:2px solid rgba(255,255,255,.3);border-radius:50px;background:rgba(255,255,255,.15);color:#fff;font-size:.93rem;outline:none}
+.ci::placeholder{color:rgba(255,255,255,.55)}
+.ci:focus{border-color:rgba(255,255,255,.7);background:rgba(255,255,255,.22)}
+.btn-p{padding:.6rem 1.3rem;background:var(--a);color:#fff;border:none;border-radius:50px;font-weight:600;font-size:.88rem;cursor:pointer;white-space:nowrap;transition:background .2s}
+.btn-p:hover{background:#d97706}
+.tctrl{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:.65rem}
+.cg{display:flex;flex-direction:column;gap:.2rem}
+.cg label{font-size:.67rem;text-transform:uppercase;letter-spacing:.06em;opacity:.65}
+.cg input,.cg select{padding:.42rem .7rem;border:1px solid rgba(255,255,255,.25);border-radius:6px;background:rgba(255,255,255,.12);color:#fff;font-size:.86rem;outline:none}
+.cg select option{background:#1e3a5f}
+/* tabs */
+.tabs{background:var(--w);border-bottom:1px solid var(--b);display:flex;overflow-x:auto;box-shadow:0 1px 4px rgba(0,0,0,.06);position:sticky;top:168px;z-index:50}
+.tb{padding:.85rem 1.3rem;border:none;background:transparent;color:var(--m);font-size:.86rem;font-weight:500;cursor:pointer;border-bottom:3px solid transparent;transition:all .18s;white-space:nowrap}
+.tb:hover{color:var(--p);background:rgba(79,70,229,.04)}
+.tb.on{color:var(--p);border-bottom-color:var(--p);background:rgba(79,70,229,.05)}
+/* content */
+.main{max-width:1200px;margin:0 auto;padding:1.4rem}
+.card{background:var(--w);border-radius:13px;padding:1.4rem;box-shadow:var(--sh);margin-bottom:1rem}
+.ct{font-size:.97rem;font-weight:600;margin-bottom:1rem;display:flex;align-items:center;gap:.45rem}
+/* hero */
+.hero{background:linear-gradient(135deg,#312e81,#0e7490);color:#fff;border-radius:13px;padding:1.6rem;margin-bottom:1rem}
+.hero h2{font-size:1.75rem;font-weight:700;margin-bottom:.5rem}
+.hero p{opacity:.88;font-size:.91rem;line-height:1.65;max-width:640px}
+.hmeta{display:flex;gap:1rem;margin-top:.9rem;flex-wrap:wrap}
+.hmeta span{font-size:.79rem;opacity:.82;background:rgba(255,255,255,.13);padding:.25rem .7rem;border-radius:20px}
+/* stats */
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1rem}
+.sc{background:var(--w);border-radius:12px;padding:1.1rem;box-shadow:var(--sh);text-align:center;border-top:3px solid var(--p)}
+.sv{font-size:1.55rem;font-weight:700;color:var(--p)}
+.sl{font-size:.76rem;color:var(--m);margin-top:.25rem}
+/* banner */
+.banner{background:#fef3c7;border:1px solid #fde68a;border-radius:10px;padding:.85rem 1rem;margin-bottom:1rem;font-size:.86rem;color:#92400e}
+/* budget table */
+.bt{width:100%;border-collapse:collapse}
+.bt th{text-align:left;padding:.65rem .9rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--m);border-bottom:2px solid var(--b)}
+.bt td{padding:.8rem .9rem;border-bottom:1px solid var(--b);vertical-align:middle}
+.bt tbody tr:hover td{background:rgba(79,70,229,.025)}
+.bt tfoot td{font-weight:700;background:rgba(79,70,229,.05);color:var(--p)}
+.ai{width:108px;padding:.42rem .65rem;border:1px solid var(--b);border-radius:6px;font-size:.86rem;text-align:right;outline:none}
+.ai:focus{border-color:var(--p)}
+.ai.ro{background:#f8fafc;color:var(--m)}
+.ni{width:155px;padding:.42rem .65rem;border:1px solid var(--b);border-radius:6px;font-size:.8rem;outline:none}
+/* flights */
+.fgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:.9rem;margin-bottom:.9rem}
+.fc{border:2px solid var(--b);border-radius:11px;padding:1.1rem;text-align:center;cursor:pointer;transition:all .18s}
+.fc:hover,.fc.on{border-color:var(--p);box-shadow:0 0 0 3px rgba(79,70,229,.1)}
+.fc.on{background:rgba(79,70,229,.03)}
+.fcl{font-size:.73rem;text-transform:uppercase;letter-spacing:.05em;color:var(--m);margin-bottom:.35rem}
+.fcp{font-size:1.5rem;font-weight:700;color:var(--p)}
+.fcs{font-size:.73rem;color:var(--m);margin-top:.2rem}
+.igrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:.9rem}
+.it{border:1px solid var(--b);border-radius:10px;padding:.9rem;text-align:center}
+.it .ii{font-size:1.3rem;margin-bottom:.25rem}
+.it .il{font-size:.73rem;color:var(--m);margin-bottom:.25rem}
+.it .ip{font-size:1.15rem;font-weight:700;color:var(--p)}
+.it .iu{font-size:.7rem;font-weight:400}
+/* activities */
+.fbar{display:flex;gap:.45rem;flex-wrap:wrap;margin-bottom:1rem}
+.fb{padding:.35rem .85rem;border:1px solid var(--b);border-radius:20px;font-size:.78rem;cursor:pointer;background:var(--w);color:var(--m);transition:all .18s}
+.fb.on,.fb:hover{background:var(--p);color:#fff;border-color:var(--p)}
+.agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.9rem}
+.ac{border:1.5px solid var(--b);border-radius:11px;padding:.9rem;cursor:pointer;position:relative;transition:all .18s}
+.ac:hover{border-color:var(--p);box-shadow:0 0 0 3px rgba(79,70,229,.08)}
+.ac.ck{border-color:var(--g);background:rgba(16,185,129,.04)}
+.mb{position:absolute;top:-8px;right:9px;background:var(--a);color:#fff;padding:.1rem .5rem;border-radius:4px;font-size:.67rem;font-weight:700}
+.ai2{padding-left:1.75rem}
+.ah{display:flex;justify-content:space-between;gap:.4rem;margin-bottom:.35rem}
+.an{font-weight:600;font-size:.91rem}
+.amc{font-weight:700;color:var(--p);font-size:.91rem;white-space:nowrap}
+.ad{font-size:.78rem;color:var(--m);line-height:1.5;margin-bottom:.55rem}
+.atgs{display:flex;gap:.35rem;flex-wrap:wrap}
+.at{padding:.16rem .5rem;border-radius:4px;font-size:.68rem;font-weight:500}
+.culture{background:#ede9fe;color:#5b21b6}
+.nature{background:#d1fae5;color:#065f46}
+.food{background:#fef3c7;color:#92400e}
+.nightlife{background:#fce7f3;color:#9d174d}
+.shopping{background:#e0f2fe;color:#075985}
+.adventure{background:#fee2e2;color:#991b1b}
+.dur{background:#f1f5f9;color:#475569}
+.acb{position:absolute;top:.8rem;left:.8rem;width:16px;height:16px;cursor:pointer;accent-color:var(--g)}
+.atbar{margin-top:.9rem;padding-top:.9rem;border-top:1px solid var(--b);display:flex;justify-content:space-between;align-items:center}
+/* custom form */
+.cf{border:2px dashed var(--b);border-radius:11px;padding:1.1rem;margin-top:1.4rem}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-bottom:.65rem}
+.fg{display:flex;flex-direction:column;gap:.22rem}
+.fg label{font-size:.78rem;font-weight:500}
+.fg input,.fg select{padding:.45rem .65rem;border:1px solid var(--b);border-radius:7px;font-size:.85rem;outline:none;font-family:inherit}
+.fg input:focus,.fg select:focus{border-color:var(--p)}
+/* summary */
+.br{margin-bottom:.8rem}
+.bl{display:flex;justify-content:space-between;font-size:.81rem;margin-bottom:.25rem}
+.btr{height:8px;background:var(--b);border-radius:4px;overflow:hidden}
+.bf{height:100%;border-radius:4px;transition:width .5s}
+.hg{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:.9rem}
+.ht{text-align:center;padding:1rem;border:1px solid var(--b);border-radius:10px}
+.ht .hl{font-size:.76rem;color:var(--m);margin-bottom:.35rem}
+.ht .hv{font-size:1.4rem;font-weight:700}
+/* tips */
+.tl{list-style:none}
+.tl li{padding:.65rem 0;border-bottom:1px solid var(--b);display:flex;gap:.65rem;font-size:.86rem;line-height:1.55}
+.tl li:last-child{border-bottom:none}
+.tl li::before{content:"💡";flex-shrink:0}
+/* checklist */
+.cli{display:flex;align-items:center;gap:.7rem;padding:.55rem 0;border-bottom:1px solid var(--b)}
+.cli:last-child{border-bottom:none}
+.cli input{width:16px;height:16px;cursor:pointer;accent-color:var(--g)}
+.cli label{cursor:pointer;font-size:.88rem}
+/* buttons */
+.btn{background:var(--p);color:#fff;border:none;padding:.65rem 1.3rem;border-radius:8px;font-size:.87rem;font-weight:600;cursor:pointer;transition:background .2s}
+.btn:hover{background:var(--pd)}
+.btn-sm{padding:.5rem 1rem;border-radius:7px;font-size:.83rem;font-weight:600;cursor:pointer;border:none;background:var(--p);color:#fff}
+/* empty */
+.empty{text-align:center;padding:3rem 1.5rem;color:var(--m)}
+.empty .ei{font-size:2.75rem;margin-bottom:.8rem}
+.empty h3{font-size:1rem;color:var(--t);margin-bottom:.35rem}
+.empty p{font-size:.86rem;max-width:320px;margin:0 auto}
+/* responsive */
+@media(max-width:800px){.tctrl{grid-template-columns:1fr 1fr 1fr}.sg{grid-template-columns:repeat(2,1fr)}.fgrid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.htop{flex-direction:column}.srch{max-width:100%}.tctrl{grid-template-columns:1fr 1fr}.fr{grid-template-columns:1fr}.tabs{top:250px}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="htop">
+    <div class="logo">✈️ Trip Budgeter</div>
+    <div class="srch">
+      <input class="ci" id="ci" placeholder="Enter a destination — Paris, Tokyo, Bali…" onkeydown="if(event.key==='Enter')go()">
+      <button class="btn-p" onclick="go()">Plan Trip</button>
+    </div>
+  </div>
+  <div class="tctrl">
+    <div class="cg"><label>Trip Name</label><input type="text" id="tname" value="My Adventure"></div>
+    <div class="cg"><label>Start Date</label><input type="date" id="sd" onchange="calcDays()"></div>
+    <div class="cg"><label>End Date</label><input type="date" id="ed" onchange="calcDays()"></div>
+    <div class="cg"><label>Travelers</label><input type="number" id="np" value="1" min="1" max="20" onchange="onPpl()"></div>
+    <div class="cg"><label>Budget Type</label>
+      <select id="bt" onchange="applyBudgetType()">
+        <option value="b">Budget</option>
+        <option value="m" selected>Mid-Range</option>
+        <option value="l">Luxury</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tb on" onclick="sw(this,'ov')">🏠 Overview</button>
+  <button class="tb" onclick="sw(this,'bud')">💰 Budget</button>
+  <button class="tb" onclick="sw(this,'fl')">✈️ Flights & Stay</button>
+  <button class="tb" onclick="sw(this,'act')">🎯 Activities</button>
+  <button class="tb" onclick="sw(this,'sum')">📊 Summary</button>
+</div>
+
+<div class="main">
+  <div id="t-ov">
+    <div id="heroArea"><div class="card empty"><div class="ei">🗺️</div><h3>Where are you headed?</h3><p>Type any destination above — Paris, Tokyo, Bali, New York and more — to instantly load city-specific budgets, flights, and activities.</p></div></div>
+    <div id="statsRow" style="display:none" class="sg">
+      <div class="sc"><div class="sv" id="stot">$0</div><div class="sl">Total Budget</div></div>
+      <div class="sc"><div class="sv" id="spd">$0</div><div class="sl">Per Day</div></div>
+      <div class="sc"><div class="sv" id="spp">$0</div><div class="sl">Per Person</div></div>
+      <div class="sc"><div class="sv" id="sdays">7</div><div class="sl">Days</div></div>
+    </div>
+    <div id="clCard" style="display:none" class="card"><div class="ct">📋 Pre-Trip Checklist</div><div id="clItems"></div></div>
+  </div>
+
+  <div id="t-bud" style="display:none">
+    <div class="card"><div class="ct">💰 Budget Breakdown</div>
+      <div style="overflow-x:auto">
+        <table class="bt">
+          <thead><tr><th>Category</th><th>Details</th><th>Estimated</th><th>Actual</th><th>Notes</th></tr></thead>
+          <tbody id="bBody"></tbody>
+          <tfoot><tr><td colspan="2"><strong>TOTAL</strong></td><td><strong id="estT">$0</strong></td><td><strong id="actT">$0</strong></td><td></td></tr></tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="t-fl" style="display:none">
+    <div id="flArea"><div class="card empty"><div class="ei">✈️</div><h3>No destination yet</h3><p>Enter a city above to see flight cost estimates, accommodation tiers, and local transport costs.</p></div></div>
+  </div>
+
+  <div id="t-act" style="display:none">
+    <div class="card"><div class="ct">🎯 Activities To-Do</div>
+      <div class="fbar">
+        <button class="fb on" onclick="fAct('all',this)">All</button>
+        <button class="fb" onclick="fAct('culture',this)">🏛 Culture</button>
+        <button class="fb" onclick="fAct('nature',this)">🌿 Nature</button>
+        <button class="fb" onclick="fAct('food',this)">🍜 Food</button>
+        <button class="fb" onclick="fAct('shopping',this)">🛍 Shopping</button>
+        <button class="fb" onclick="fAct('adventure',this)">🧗 Adventure</button>
+        <button class="fb" onclick="fAct('nightlife',this)">🌙 Nightlife</button>
+      </div>
+      <div id="actEmpty" class="empty" style="padding:2rem 1rem"><div class="ei">🎯</div><h3>No activities yet</h3><p>Search a city to load suggestions, or add your own below.</p></div>
+      <div class="agrid" id="aGrid"></div>
+      <div class="atbar" id="atbar" style="display:none"><span style="font-weight:600">Selected Activities:</span><span style="font-size:1.15rem;font-weight:700;color:var(--p)" id="atot">$0</span></div>
+      <div class="cf">
+        <div class="ct" style="margin-bottom:.75rem">➕ Add Custom Activity</div>
+        <div class="fr"><div class="fg"><label>Name *</label><input type="text" id="nn" placeholder="e.g. Visit the Museum"></div><div class="fg"><label>Category</label><select id="nc"><option value="culture">🏛 Culture</option><option value="nature">🌿 Nature</option><option value="food">🍜 Food</option><option value="shopping">🛍 Shopping</option><option value="adventure">🧗 Adventure</option><option value="nightlife">🌙 Nightlife</option></select></div></div>
+        <div class="fr"><div class="fg"><label>Cost ($)</label><input type="number" id="nco" placeholder="0" min="0"></div><div class="fg"><label>Duration</label><input type="text" id="nd" placeholder="e.g. 2 hours"></div></div>
+        <div class="fg" style="margin-bottom:.7rem"><label>Description (optional)</label><input type="text" id="ndesc" placeholder="Brief description…"></div>
+        <button class="btn-sm" onclick="addAct()">Add Activity</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="t-sum" style="display:none">
+    <div class="card"><div class="ct">📊 Budget Breakdown</div><div id="sumBars"></div></div>
+    <div class="card"><div class="ct">✅ Budget Health</div><div class="hg" id="hGrid"></div></div>
+    <div class="card" id="tipsCard" style="display:none"><div class="ct">💡 Money-Saving Tips for <span id="tipsCity"></span></div><ul class="tl" id="tipsList"></ul></div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────
+const S={city:'',data:null,days:7,ppl:1,acts:[],
+  bud:{
+    flights:    {est:0,act:0,note:'',pp:0},
+    hotel:      {est:0,act:0,note:'',pn:0,nights:7},
+    food:       {est:0,act:0,note:'',pd:0,days:7},
+    transport:  {est:0,act:0,note:'',pd:0,days:7},
+    activities: {est:0,act:0,note:'Auto-totaled from Activities tab'},
+    shopping:   {est:0,act:0,note:''},
+    insurance:  {est:0,act:0,note:'~$5/person/day'},
+    misc:       {est:0,act:0,note:'Emergency fund (~10%)'},
+  }
+};
+
+// ── CITY DATABASE ──────────────────────────────────────
+// Format: fl=[budget,economy,business,first,note]
+//         ac=[hostel,budgetHotel,midRange,luxury,note]
+//         fo=[street,budget,midRange,upscale,note]
+//         tr=[transit,rideshare,taxi,car,note]
+//         activities: [name,category,cost,desc,duration,mustSee]
+const DB={};
+
+DB.paris={city:'Paris',country:'France',currency:'EUR',
+overview:"The City of Light dazzles with iconic landmarks, world-class cuisine, and centuries of art and history. Stroll cobblestone boulevards, sip espresso at sidewalk cafés, and feel the romance at every turn.",
+bestTime:'April–June or September–October',visaInfo:'Visa-free for US citizens up to 90 days (Schengen)',
+fl:[420,680,2400,6500,'Round-trip from major US cities (JFK/LAX/ORD)'],
+ac:[35,100,210,520,'Per night. Higher near the Eiffel Tower.'],
+fo:[10,30,65,140,'Per person/day. Lunch menus offer great value.'],
+tr:[8,22,32,75,'Metro is best. Navigo weekly pass ~€30.'],
+acts:[
+['Eiffel Tower','culture',30,"Ascend Gustave Eiffel's iconic iron tower for breathtaking city panoramas.",'2–3 hrs',true],
+['Louvre Museum','culture',22,'Home to the Mona Lisa, Venus de Milo, and 380,000+ artworks.','3–4 hrs',true],
+['Palace of Versailles','culture',20,"Louis XIV's opulent palace with Hall of Mirrors and sweeping gardens.",'Full day',true],
+['Montmartre & Sacré-Cœur','culture',0,'Bohemian hilltop village with the free white basilica and artists square.','2–3 hrs',true],
+['Seine River Cruise','nature',18,'Float past Notre-Dame and the Eiffel Tower on a scenic hour-long cruise.','1 hr',false],
+["Musée d'Orsay",'culture',18,'Impressionist masterpieces by Monet, Van Gogh, and Renoir in a stunning station.','2–3 hrs',true],
+['Le Marais Shopping','shopping',0,"Paris's trendiest district — boutiques, galleries, and the best falafel.",'2 hrs',false],
+['French Cooking Class','food',90,'Learn to make croissants and classic dishes with a Parisian chef.','3 hrs',false],
+['Moulin Rouge Cabaret','nightlife',120,'World-famous can-can show in Pigalle — costumes, Champagne, and spectacle.','2 hrs',false],
+['Wine & Cheese Tasting','food',50,'Curated French wines paired with artisan cheeses in a cozy cave à vin.','2 hrs',false],
+],
+tips:['Buy a Paris Museum Pass for unlimited access to 50+ monuments.',
+'Many national museums are free the first Sunday of each month.',
+'Get a weekly Navigo metro pass (~€30) for unlimited rides.',
+'Eat the "formule" lunch at local bistros — 2 courses for €12–20.',
+'Book Eiffel Tower and Versailles tickets 2–4 weeks ahead online.'],
+checklist:['Book Eiffel Tower skip-the-line tickets','Get Navigo metro card at airport','Reserve special dinners in advance','Purchase travel insurance','Notify bank of international travel','Download offline French phrases']};
+
+DB.london={city:'London',country:'United Kingdom',currency:'GBP',
+overview:'A world capital of history, culture, and food, London blends ancient royalty with cutting-edge creativity. Expect iconic red buses, world-class free museums, and diverse cuisine around every corner.',
+bestTime:'May–September (warmest and brightest)',visaInfo:'US citizens need an ETA (Electronic Travel Authorization) from 2024',
+fl:[450,750,2800,7500,'Round-trip from major US cities'],
+ac:[35,130,250,600,'Per night. Central London is expensive — consider Shoreditch or Southwark.'],
+fo:[15,40,80,170,'Per person/day. Pubs offer good-value meals.'],
+tr:[10,28,40,90,'Oyster card or contactless on the Tube is cheapest.'],
+acts:[
+['British Museum','culture',0,'World-class collection including the Rosetta Stone and Elgin Marbles — completely free.','3–4 hrs',true],
+['Tower of London & Tower Bridge','culture',35,'Medieval fortress housing the Crown Jewels and the iconic drawbridge.','3 hrs',true],
+['West End Show','nightlife',80,'Catch a world-class musical in London\'s legendary theatre district.','2.5 hrs',true],
+['Buckingham Palace','culture',0,'Watch the Changing of the Guard outside the monarch\'s official residence.','1 hr',true],
+['Camden Market','shopping',0,'Vibrant market in a Victorian canal setting — street food, vintage, and live music.','2–3 hrs',false],
+['National Gallery','culture',0,'Van Eyck, Turner, and Vermeer in Trafalgar Square — free entry.','2–3 hrs',true],
+['Afternoon Tea','food',55,'Quintessential British tradition: finger sandwiches, scones, and clotted cream.','2 hrs',false],
+['Borough Market','food',15,'London\'s oldest food market — artisan produce, oysters, and global street food.','2 hrs',false],
+['Thames River Cruise','nature',20,'Cruise from Westminster to Greenwich past landmarks old and new.','1.5 hrs',false],
+['Hyde Park & Kensington','nature',0,'350 acres of royal parkland great for cycling, picnics, and people-watching.','2 hrs',false],
+],
+tips:['Nearly all major London museums and galleries are completely free.',
+'Use contactless payment on the Tube — far cheaper than buying paper tickets.',
+'Buy same-day West End tickets at the TKTS booth in Leicester Square (up to 50% off).',
+'Supermarket meal deals (Tesco, M&S) make cheap, quality lunches.'],
+checklist:['Get an Oyster card at Heathrow','Apply for UK ETA before travel','Book popular restaurants and shows in advance','Purchase travel insurance','Pack layers — weather changes fast','Download Citymapper for transport routes']};
+
+DB.rome={city:'Rome',country:'Italy',currency:'EUR',
+overview:"The Eternal City layers 2,800 years of history onto every cobblestone. Ancient ruins sit beside Renaissance fountains, and world-class gelato is never more than a block away.",
+bestTime:'April–May or September–October',visaInfo:'Visa-free for US citizens up to 90 days (Schengen)',
+fl:[380,650,2200,6000,'Round-trip from major US cities'],
+ac:[30,90,180,450,'Per night. Book early for the best central locations.'],
+fo:[10,28,62,130,'Per person/day. Eat near Campo de\' Fiori for good value.'],
+tr:[6,20,28,70,'Metro is small but buses cover everything else. Validate tickets!'],
+acts:[
+['Colosseum & Roman Forum','culture',18,'Walk the floor of the ancient amphitheater and stroll the heart of the Roman Empire.','3–4 hrs',true],
+['Vatican Museums & Sistine Chapel','culture',25,"Michelangelo's ceiling and the world's greatest art collection — book well ahead.",'4 hrs',true],
+['Trevi Fountain','culture',0,'Toss a coin in Baroque Rome\'s most magnificent fountain — free and unmissable.','30 mins',true],
+['Pantheon','culture',5,'A perfectly preserved 2,000-year-old temple open to the sky through its oculus.','1 hr',true],
+['Trastevere at Night','food',0,'Wander medieval cobblestone alleys lined with trattorias and lively wine bars.','Evening',true],
+['Borghese Gallery','culture',25,'Bernini sculptures and Caravaggio paintings in a stunning villa — book ahead.','2 hrs',false],
+['Roman Food Tour','food',65,'Taste supplì, carbonara, and cacio e pepe with a local foodie guide.','3 hrs',false],
+['Ostia Antica','culture',12,'Ancient harbor ruins better preserved than Pompeii — far fewer crowds.','Half day',false],
+["Campo de' Fiori Market",'shopping',0,"Rome's lively morning market selling produce, flowers, and local cheeses.",'1 hr',false],
+['Aperitivo Hour','food',15,'Pre-dinner Aperol Spritz with free bar snacks — a beloved Roman ritual.','1 hr',false],
+],
+tips:['Book the Colosseum and Vatican online — both sell out days in advance.',
+'Many churches hold priceless free art — visit Santa Maria Maggiore, San Luigi dei Francesi.',
+"Rome's 2,500 nasoni street fountains provide free cold drinking water — bring a bottle.",
+"Eat one block from tourist sights for half the price and double the quality."],
+checklist:['Book Colosseum & Vatican tickets online','Get a 48-hr or 72-hr transit pass','Reserve Borghese Gallery (must book ahead)','Purchase travel insurance','Pack comfortable walking shoes','Dress modestly for churches (shoulders/knees covered)']};
+
+DB.barcelona={city:'Barcelona',country:'Spain',currency:'EUR',
+overview:"Gaudí's surreal architecture, tapas bars on every corner, and a buzzing beach make Barcelona one of Europe's most exciting cities. The food, nightlife, and weather are world-class.",
+bestTime:'May–June or September–October',visaInfo:'Visa-free for US citizens up to 90 days (Schengen)',
+fl:[400,680,2300,6500,'Round-trip from major US cities'],
+ac:[28,80,160,400,'Per night. Barceloneta and Eixample are popular bases.'],
+fo:[10,28,60,130,'Per person/day. Tapas bars offer great-value evening eats.'],
+tr:[6,18,25,65,'Metro and buses cover the city well. T-Casual 10-trip card saves money.'],
+acts:[
+['Sagrada Família','culture',35,"Gaudí's unfinished cathedral is the most extraordinary building in the world.",'2–3 hrs',true],
+['Park Güell','culture',15,"Gaudí's mosaic terraces and gingerbread gatehouse on a forested hill.",'2 hrs',true],
+['Gothic Quarter','culture',0,'Get lost in medieval alleyways hiding Roman ruins and sun-dappled plazas.','2 hrs',true],
+['La Boqueria Market','food',0,'Las Ramblas\' iconic covered market — jamón, cheeses, fresh juice, and seafood.','1–2 hrs',true],
+['Casa Batlló','culture',37,"Gaudí's wave-like masterpiece with a bone facade and dragon-scale roof.",'1.5 hrs',false],
+['Tapas Bar Crawl — El Born','food',40,'Sample patatas bravas, croquetas, and jamón across neighborhood bars.','Evening',true],
+['Barceloneta Beach','nature',0,'Barcelona\'s sandy urban beach — Mediterranean sun with the city skyline behind you.','2–3 hrs',false],
+['Picasso Museum','culture',14,'Comprehensive early-career collection in a stunning 15th-century Gothic palace.','2 hrs',false],
+['Montjuïc Funicular & Views','adventure',15,'Ride to the hilltop castle for panoramic views of the port and city.','2 hrs',false],
+['Flamenco Show','nightlife',40,'Experience raw, passionate flamenco at an authentic tablao in the city.','1.5 hrs',false],
+],
+tips:['Buy a T-Casual 10-trip metro card — much cheaper than single tickets.',
+'Book Sagrada Família and Park Güell tickets online weeks in advance.',
+'Lunch menus (menú del día) offer 2–3 courses for €10–15 even at nice restaurants.',
+'Beware pickpockets on Las Ramblas — use a money belt for passports and cards.'],
+checklist:['Book Sagrada Família & Park Güell tickets','Get a T-Casual metro card','Book rooftop restaurant dinners in advance','Purchase travel insurance','Notify bank of international travel','Download offline Spanish phrases']};
+
+DB.amsterdam={city:'Amsterdam',country:'Netherlands',currency:'EUR',
+overview:"A city of canals, world-class museums, and legendary cycling culture. Amsterdam's 17th-century canal belt is a UNESCO World Heritage Site, and its museums rank among Europe's finest.",
+bestTime:'April–May (tulips!) or June–August',visaInfo:'Visa-free for US citizens up to 90 days (Schengen)',
+fl:[420,700,2500,7000,'Round-trip from major US cities'],
+ac:[35,120,200,500,'Per night. Jordan and De Pijp are great neighborhoods.'],
+fo:[12,35,70,150,'Per person/day. Dutch fries (patat) are a cheap classic.'],
+tr:[8,25,35,80,'Buy a GVB multi-day pass for trams and metro.'],
+acts:[
+['Rijksmuseum','culture',25,'Rembrandt, Vermeer, and Delftware in Holland\'s premier art museum.','3–4 hrs',true],
+['Anne Frank House','culture',16,'The preserved hiding place where Anne Frank wrote her famous diary — book way ahead.','1.5 hrs',true],
+['Van Gogh Museum','culture',22,'The world\'s largest Van Gogh collection including Sunflowers and The Bedroom.','2–3 hrs',true],
+['Canal Boat Tour','nature',18,'Float through the UNESCO canal belt past 17th-century merchant houses.','1 hr',true],
+['Keukenhof Gardens','nature',25,'Seven million tulips in bloom — the world\'s most spectacular flower garden. (Spring only)','3 hrs',false],
+['Cycling Tour','adventure',30,'Explore the city and surrounding countryside by bike — the proper Dutch way.','3 hrs',true],
+['Heineken Experience','food',25,'Interactive brewery tour at the original Heineken factory with tastings.','2 hrs',false],
+['Jordaan Neighbourhood','shopping',0,'Amsterdam\'s prettiest district — vintage markets, cheese shops, and indie boutiques.','2 hrs',false],
+['Dutch Cheese & Gin Tasting','food',30,'Sample aged Gouda and traditional jenever gin with a local expert.','1.5 hrs',false],
+['Vondelpark Picnic','nature',0,"Amsterdam's beloved park — perfect for a sunny afternoon picnic with local snacks.",'1–2 hrs',false],
+],
+tips:['Pre-book Anne Frank House weeks in advance — it sells out every day.',
+'Rent a bike for the day (~€12) — it\'s by far the best way to see Amsterdam.',
+'Visit Keukenhof (tulip gardens) only in spring (late March–mid May).',
+'Stay in De Pijp or Jordaan for a more local, less touristy experience.'],
+checklist:['Book Anne Frank House tickets well ahead','Get a GVB multi-day transit pass','Rent a bike on arrival','Purchase travel insurance','Notify bank of international travel','Download offline Dutch phrases']};
+
+DB.prague={city:'Prague',country:'Czech Republic',currency:'CZK',
+overview:"One of Europe's most beautiful — and most affordable — cities, Prague's Gothic skyline, medieval castle, and beer culture make it endlessly enchanting. Best of all, your money goes very far here.",
+bestTime:'May–June or September–October',visaInfo:'Visa-free for US citizens up to 90 days (Schengen)',
+fl:[550,800,2600,7500,'Round-trip from major US cities (often via hub)'],
+ac:[15,50,100,250,'Per night in USD. Prague is excellent value.'],
+fo:[5,18,40,90,'Per person/day in USD. Czech food is hearty and cheap.'],
+tr:[3,12,15,35,'Metro + tram network is efficient and very cheap.'],
+acts:[
+['Prague Castle','culture',15,'The largest ancient castle complex in the world — St. Vitus Cathedral and royal palaces.','3–4 hrs',true],
+['Charles Bridge at Dawn','culture',0,'Walk the 14th-century Gothic bridge lined with Baroque statues at sunrise — magical.','1 hr',true],
+['Old Town Square & Clock','culture',0,'Watch the medieval Astronomical Clock chime in a stunning 12th-century square.','1 hr',true],
+['Czech Beer Pub Crawl','food',25,'Sample Pilsner Urquell, dark lager, and Czech spirits in traditional hospodas.','Evening',true],
+['Josefov Jewish Quarter','culture',18,'Europe\'s most intact medieval Jewish quarter with six synagogues and a cemetery.','2–3 hrs',false],
+['Vyšehrad Fortress','culture',0,'Hilltop fortress with panoramic Vltava views — far fewer crowds than the castle.','2 hrs',false],
+['Day Trip: Český Krumlov','adventure',35,'UNESCO fairy-tale castle town in South Bohemia — 3 hrs by bus.','Full day',false],
+['Bohemian Spa at Lázně','adventure',25,'Relax in the city\'s elegant Art Nouveau thermal baths.','3 hrs',false],
+['Czech Cooking Class','food',50,'Make svíčková, knedlíky, and apple strudel with a local home cook.','3 hrs',false],
+],
+tips:['Prague is one of the cheapest capitals in Europe — budget travelers thrive here.',
+'Change money at a bank or ATM — street exchange booths have terrible rates.',
+'Most sights are walkable; save transit money by exploring on foot.',
+'Buy beer at the supermarket for under $1 — even bar prices are astonishingly low.'],
+checklist:['Exchange or withdraw Czech koruna on arrival','Book popular restaurants for evenings','Purchase travel insurance','Notify bank of international travel','Download offline Czech map','Dress warmly — evenings can be cool year-round']};
+
+DB.lisbon={city:'Lisbon',country:'Portugal',currency:'EUR',
+overview:"Europe's sunniest capital tumbles down seven hills to the River Tagus. Lisbon serves extraordinary food, heartfelt fado music, and glorious architecture — all at remarkably affordable prices.",
+bestTime:'March–May or September–October',visaInfo:'Visa-free for US citizens up to 90 days (Schengen)',
+fl:[430,700,2400,6500,'Round-trip from major US cities'],
+ac:[20,60,120,300,'Per night. Alfama and Bairro Alto are charming bases.'],
+fo:[8,22,50,110,'Per person/day. Bacalhau and pastéis de nata are must-eats.'],
+tr:[5,15,20,50,'Trams and metro are cheap. Tram 28 is famous but crowded.'],
+acts:[
+["Belém Tower & Jerónimos Monastery",'culture',12,'UNESCO Manueline masterpieces from the Age of Discovery.','2–3 hrs',true],
+['Alfama & São Jorge Castle','culture',10,'Moorish castle and medieval quarter with the best city viewpoints.','2–3 hrs',true],
+['Pastéis de Belém','food',5,'The original egg custard tart baked since 1837 — a sacred Lisbon ritual.','30 mins',true],
+['Sintra Day Trip','nature',25,'Fairy-tale palaces and castles in UNESCO forested hills — just 40 min by train.','Full day',true],
+['Fado Show Dinner','nightlife',55,'Experience Portugal\'s soulful, haunting national music in an Alfama tasca.','3 hrs',false],
+['LX Factory Market','shopping',0,'Hip Sunday market in a converted 19th-century factory with food, art, and music.','2–3 hrs',false],
+['Tram 28 Ride','culture',3,'The iconic yellow tram rattles through impossibly narrow Alfama streets.','45 mins',true],
+['Wine & Petiscos Tour','food',40,'Portuguese wines and small plates across Mouraria and Bairro Alto.','Evening',false],
+['Cascais Coastal Day Trip','nature',15,'Charming resort town and Europe\'s westernmost point, Cabo da Roca.','Full day',false],
+],
+tips:['Lisbon is one of the best-value capital cities in Western Europe.',
+'The Lisboa Card gives unlimited transport and free/discounted entry to 25+ attractions.',
+'Eat at tascas (local taverns) away from Belém and Alfama for authentic prices.',
+'Day trips to Sintra and Cascais are easy and cheap by train from Rossio station.'],
+checklist:['Get a 24/48/72hr Lisboa Card on arrival','Book fado restaurant dinner in advance','Purchase travel insurance','Notify bank of international travel','Download offline Portuguese phrases','Check Sintra palace ticket availability']};
+
+DB.tokyo={city:'Tokyo',country:'Japan',currency:'JPY',
+overview:"The world's largest city is also its most orderly, delicious, and fascinating. Tokyo seamlessly blends ancient temples and cutting-edge technology with the finest food culture on the planet.",
+bestTime:'March–May (cherry blossoms) or Oct–Nov (autumn)',visaInfo:'Visa-free for US citizens up to 90 days',
+fl:[600,950,3200,9000,'Round-trip from major US cities (LA is closest)'],
+ac:[25,70,160,400,'Per night in USD. Shinjuku and Shibuya are central.'],
+fo:[8,25,55,130,'Per person/day. Tokyo has more Michelin stars than any city on Earth.'],
+tr:[10,25,35,80,'IC card (Suica/Pasmo) works on all trains, subway, and buses.'],
+acts:[
+['Senso-ji Temple, Asakusa','culture',0,"Tokyo's oldest temple with the iconic Thunder Gate and Nakamise shopping street.",'1–2 hrs',true],
+['Shibuya Crossing','culture',0,'Watch thousands cross at once at the world\'s busiest pedestrian intersection.','30 mins',true],
+['teamLab Borderless','culture',32,'Mind-bending immersive digital art museum — one of the world\'s most unique experiences.','2–3 hrs',true],
+['Tsukiji Outer Market Breakfast','food',15,'Fresh uni, otoro, and tamagoyaki at stalls surrounding the famous fish market.','1.5 hrs',true],
+['Tokyo Skytree','culture',22,'World\'s second-tallest tower — 360° views across the entire Kanto plain.','1.5 hrs',false],
+['Harajuku & Takeshita Street','shopping',0,"Tokyo's wild youth fashion street — crepe shops, cosplay culture, and uniqueness.",'2 hrs',false],
+['Day Trip to Nikko','nature',55,'Ornate Tosho-gu shrine complex and waterfalls in forested mountains north of Tokyo.','Full day',false],
+['Robot Restaurant Show','nightlife',80,'Shinjuku\'s utterly over-the-top robot and laser dinner show spectacle.','2 hrs',false],
+['Yanaka Old Downtown','culture',0,'Tokyo\'s best-preserved historic neighborhood — temples, craft shops, and street cats.','2 hrs',false],
+['Tokyo Ramen Tour','food',30,'Taste shoyu, miso, and tonkotsu ramen at multiple legendary Tokyo shops.','3 hrs',false],
+],
+tips:['Buy a Suica or Pasmo IC card at the airport — it works on every train and bus.',
+'7-Eleven and FamilyMart convenience stores have outstanding cheap food 24/7.',
+'Book teamLab Borderless tickets online — it sells out weeks ahead.',
+'Get a pocket WiFi or SIM card at the airport for seamless navigation.'],
+checklist:['Get Suica card at Narita/Haneda airport','Book teamLab Borderless tickets online','Reserve a meal at a special restaurant (ramen, sushi counter, etc.)','Purchase travel insurance','Check if JR Pass is worth it for your trip','Download Google Translate with Japanese']};
+
+DB.bali={city:'Bali',country:'Indonesia',currency:'IDR',
+overview:"Indonesia's island of the gods enchants with emerald rice terraces, ancient Hindu temples, world-class surf, and spiritual culture. Bali offers extraordinary beauty at genuinely affordable prices.",
+bestTime:'April–October (dry season)',visaInfo:'US citizens get a free 30-day visa on arrival (extendable)',
+fl:[700,1200,3800,10000,'Round-trip from US West Coast — often via Tokyo or Singapore'],
+ac:[10,30,80,250,'Per night in USD. Ubud is spiritual; Seminyak/Canggu is trendy.'],
+fo:[4,12,30,80,'Per person/day. Warungs (local cafes) serve excellent cheap food.'],
+tr:[2,5,8,25,'Ojek (motorbike taxi) via Gojek app is the cheapest option.'],
+acts:[
+['Tegallalang Rice Terraces','nature',2,'Iconic stepped paddies north of Ubud — stunning at sunrise, best by scooter.','1–2 hrs',true],
+['Mount Batur Sunrise Trek','adventure',35,'Hike an active volcano at 4am for sunrise over the lake — unforgettable.','5 hrs',true],
+['Uluwatu Temple Sunset & Kecak','culture',8,'Clifftop sea temple with a dramatic fire dance performance at sunset.','2 hrs',true],
+['Balinese Cooking Class','food',35,'Morning market visit and hands-on traditional Balinese cooking in Ubud.','4 hrs',true],
+['Ubud Monkey Forest','nature',5,'Sacred forest sanctuary home to 700 wild long-tailed macaques.','1–2 hrs',false],
+['Traditional Balinese Massage','adventure',12,'1-hour traditional massage at a reputable spa in Ubud — deeply restorative.','1 hr',false],
+['Tanah Lot Temple','culture',4,'Iconic sea temple perched on a rocky outcrop — spectacular at low tide.','1.5 hrs',false],
+['Seminyak Beach & Surf Lesson','adventure',30,'Learn to surf on Bali\'s most glamorous stretch of beach.','2 hrs',false],
+['Tirta Gangga Water Palace','culture',2,'Royal water palace with lotus ponds and volcanic mountain backdrop.','1 hr',false],
+['Canggu Café Crawl','food',15,'Explore Bali\'s hippest neighborhood for smoothie bowls and specialty coffee.','2–3 hrs',false],
+],
+tips:['Download the Gojek app for cheap motorbike taxis and food delivery.',
+'Bargain at markets — the first price is rarely the final price.',
+'Carry small denomination cash (IDR) as many warungs don\'t take cards.',
+'Book Ubud restaurants in advance — the best spots fill up quickly.'],
+checklist:['Get Bali visa on arrival at the airport','Download Gojek ride-share app','Exchange USD to IDR at a reputable money changer (not the airport)','Purchase travel insurance with emergency evacuation','Get travel vaccinations (Hep A/Typhoid recommended)','Pack light rain jacket for afternoon showers']};
+
+DB.singapore={city:'Singapore',country:'Singapore',currency:'SGD',
+overview:"A gleaming city-state where futuristic architecture meets diverse street food culture. Singapore is one of Asia's safest and most efficient cities — impeccably clean, endlessly fascinating, and a food lover's paradise.",
+bestTime:'February–April (least rain)',visaInfo:'Visa-free for US citizens up to 90 days',
+fl:[800,1300,4000,11000,'Round-trip from major US cities'],
+ac:[25,80,200,500,'Per night in USD. Clarke Quay and Bugis are great areas.'],
+fo:[4,15,45,130,'Per person/day. Hawker centres are world-class and incredibly cheap.'],
+tr:[5,15,20,70,'EZ-Link card for MRT and buses — the city is easy to navigate.'],
+acts:[
+['Gardens by the Bay','nature',28,'Supertrees, Cloud Forest, and Flower Dome in a futuristic UNESCO garden.','3–4 hrs',true],
+['Hawker Centre Food Tour','food',12,'Chicken rice, laksa, char kway teow, and chilli crab at an iconic kopitiam.','2 hrs',true],
+['Marina Bay Sands Skypark','culture',30,'Observation deck atop the iconic three-tower hotel with 360° city views.','1.5 hrs',true],
+['Sentosa Island','adventure',0,'Beach resort island with Universal Studios, cable car, and beach clubs.','Full day',false],
+['Chinatown & Little India Walk','culture',0,'Explore vibrant ethnic enclaves — temples, markets, and incredible street food.','3 hrs',false],
+['Night Safari','nature',50,"The world's first nocturnal zoo — tram rides through 8 immersive habitats.",'3 hrs',false],
+['Clarke Quay Bar Hopping','nightlife',40,'Riverside entertainment strip with rooftop bars and live music venues.','Evening',false],
+['Singapore Botanic Gardens','nature',0,'UNESCO tropical garden with a free National Orchid Garden inside.','2 hrs',false],
+['Katong Peranakan Heritage','culture',0,'Colorful Straits Chinese shophouses and the best laksa in Singapore.','2 hrs',false],
+],
+tips:['Hawker centres offer some of the world\'s best food for $3–8 a dish.',
+'The MRT is cheap, clean, and air-conditioned — use it everywhere.',
+'Free attractions include Gardens by the Bay (outdoor), Botanic Gardens, and all beaches.',
+'Book Marina Bay Sands observation deck tickets online to avoid queues.'],
+checklist:['Get EZ-Link card at Changi Airport MRT','Book Marina Bay Sands SkyPark tickets','Reserve dinner at a popular restaurant','Purchase travel insurance','Pack light — Singapore is hot and humid year-round','Download Grab app for ride-sharing']};
+
+DB.dubai={city:'Dubai',country:'UAE',currency:'AED',
+overview:"A city of superlatives — the world's tallest building, largest mall, and most ambitious artificial islands. Dubai blends Arabian heritage with jaw-dropping modernity in the middle of the desert.",
+bestTime:'November–March (cool and pleasant)',visaInfo:'US citizens get a free 30-day visa on arrival',
+fl:[700,1100,3500,10000,'Round-trip from major US cities'],
+ac:[30,80,200,600,'Per night in USD. Downtown and JBR are prime locations.'],
+fo:[10,25,70,180,'Per person/day. Alcohol is expensive — stick to restaurants for cheaper drinks.'],
+tr:[5,15,20,80,'Dubai Metro is cheap; Uber works well for everything else.'],
+acts:[
+['Burj Khalifa Observation Deck','culture',45,'Look out from the world\'s tallest building across the desert and the Gulf.','1.5 hrs',true],
+['Desert Safari with BBQ Dinner','adventure',80,'Dune bashing, camel riding, sandboarding, and Bedouin feast under the stars.','6 hrs',true],
+['Dubai Mall & Fountain Show','shopping',0,'World\'s largest mall with aquarium, ice rink, and the famous fountain performance.','3–4 hrs',true],
+['Gold Souk & Spice Souk','shopping',0,'Dazzling traditional markets crammed with 24-carat gold jewelry and exotic spices.','2 hrs',true],
+['Al Fahidi Historic District','culture',0,'Dubai\'s oldest neighbourhood — windtower architecture and the excellent city museum.','2 hrs',false],
+['Dhow Dinner Cruise','food',65,'Traditional wooden boat dinner along the historic creek with live entertainment.','2.5 hrs',false],
+['Palm Jumeirah Monorail','culture',5,'Ride to the iconic palm-shaped island and see the Atlantis resort up close.','1–2 hrs',false],
+['Dubai Frame','culture',14,"An enormous picture frame straddling old and new Dubai — with a glass-floor bridge.",'1 hr',false],
+['Jumeirah Mosque Tour','culture',4,'Elegant white mosque open to non-Muslims — rare and enlightening.','1 hr',false],
+['Ski Dubai Indoor Slope','adventure',90,'Real snow skiing and snowboarding inside the Mall of the Emirates.','2 hrs',false],
+],
+tips:['Buy Dubai attraction combo tickets online — often 20–30% cheaper than at the door.',
+'The Dubai Metro is clean, cheap, and has women-and-children-only carriages.',
+'Dress modestly outside of hotels and beach resorts — cover shoulders and knees.',
+'Alcohol is only served in licensed hotel bars and restaurants — not at regular cafes.'],
+checklist:['Book Burj Khalifa tickets online (sells out)','Reserve desert safari tour','Purchase travel insurance','Pack modest clothing for mosques and souks','Download Uber / Careem app','Check Ramadan dates — hours and rules change significantly']};
+
+DB['new york']={city:'New York City',country:'USA',currency:'USD',
+overview:"The city that never sleeps packs world-class museums, iconic skylines, Broadway theater, and every cuisine imaginable into five boroughs. New York is overwhelming, exhilarating, and utterly unforgettable.",
+bestTime:'April–June or September–November',visaInfo:'No visa required for US citizens — domestic travel',
+fl:[200,400,1200,3500,'Round-trip varies widely depending on your home city'],
+ac:[40,120,250,600,'Per night. Midtown is convenient; Brooklyn is more affordable.'],
+fo:[10,35,80,200,'Per person/day. NYC has everything from $1 pizza to $500 tasting menus.'],
+tr:[4,25,35,120,'MetroCard or OMNY contactless for subway — unlimited weekly pass is great value.'],
+acts:[
+['Central Park','nature',0,'843 acres of pathways, lakes, and lawns in the heart of Manhattan.','2–4 hrs',true],
+['Metropolitan Museum of Art','culture',30,'One of the world\'s greatest art museums spanning 5,000 years of human history.','3–4 hrs',true],
+['Brooklyn Bridge Walk','culture',0,'Walk the iconic 1883 suspension bridge for breathtaking Manhattan skyline views.','1–1.5 hrs',true],
+['Statue of Liberty & Ellis Island','culture',25,'Ferry to Lady Liberty and the moving Immigration Museum on Ellis Island.','4 hrs',true],
+['Broadway Show','nightlife',100,'The world\'s finest theatre — catch a Tony Award winner in a historic venue.','2.5 hrs',true],
+['High Line Park','nature',0,'Elevated park on a disused railway with art, gardens, and Hudson River views.','1.5 hrs',true],
+['MOMA','culture',30,'Picasso, Pollock, and Warhol in the world\'s most prestigious modern art museum.','2–3 hrs',false],
+['Chelsea Market & Meatpacking','food',20,'Artisan food stalls, lobster rolls, and fresh pasta in a converted factory.','1–2 hrs',false],
+['Times Square at Night','culture',0,"The sensory overload of NYC's most electric intersection — best after dark.",'1 hr',false],
+['Brooklyn & Smorgasburg','food',20,"100+ local food vendors at Brooklyn's legendary weekend outdoor food market.",'2 hrs',false],
+],
+tips:['Get a weekly unlimited MetroCard — pays off after just 12 subway rides.',
+'Most world-class NYC museums suggest a donation rather than a fixed admission.',
+'Stand in the TKTS rush ticket line in Times Square for same-day Broadway discounts (up to 50%).',
+'$1 pizza slices and $5 bagels are genuine New York institutions — use them liberally.'],
+checklist:['Book Broadway tickets (popular shows sell out weeks ahead)','Get a MetroCard at JFK or Penn Station','Reserve top restaurants well in advance (especially weekends)','Purchase travel insurance','Book Statue of Liberty tickets online — sells out fast','Download Citymapper for subway navigation']};
+
+DB.bangkok={city:'Bangkok',country:'Thailand',currency:'THB',
+overview:"Southeast Asia's most vibrant capital pulses with golden temples, insane street food, rooftop bars, and a nightlife scene that rarely sleeps. Bangkok is a city of vivid contrasts — ancient and ultra-modern at once.",
+bestTime:'November–February (cool and dry)',visaInfo:'US citizens get a free 60-day visa on arrival (as of 2024)',
+fl:[700,1100,3500,9500,'Round-trip from major US cities — often via Tokyo or Seoul'],
+ac:[12,35,80,250,'Per night in USD. Sukhumvit and Silom are popular areas.'],
+fo:[4,12,30,80,'Per person/day. Street food is world-class and incredibly cheap.'],
+tr:[3,8,10,35,'BTS Skytrain + MRT covers most tourist areas. Grab app for taxis.'],
+acts:[
+['Grand Palace & Wat Phra Kaew','culture',15,"Thailand's most sacred temple complex — gilded spires and the Emerald Buddha.",'3 hrs',true],
+['Wat Pho Reclining Buddha','culture',4,'46-meter gold reclining Buddha and the famous traditional massage school.','1–2 hrs',true],
+['Wat Arun at Sunset','nature',3,'River-facing temple of dawn — cross the Chao Phraya by ferry at golden hour.','1 hr',true],
+['Floating Market Boat Tour','food',30,'Buy pad thai and mango sticky rice directly from canal boats.','3 hrs',true],
+['Thai Cooking Class','food',45,'Morning market visit and afternoon hands-on cooking of 5 classic Thai dishes.','4 hrs',true],
+['Chatuchak Weekend Market','shopping',0,"Asia's largest market — 15,000 stalls selling everything imaginable.",'4 hrs',false],
+['Muay Thai Boxing Match','adventure',35,'Live Thai boxing at Rajadamnern or Lumpinee stadium — authentic and electric.','2–3 hrs',false],
+['Khao San Road Night Out','nightlife',20,"Bangkok's legendary backpacker strip — street food, bars, and fire shows.",'Evening',false],
+['Chao Phraya River Dinner Cruise','food',55,'Sunset dinner aboard a traditional teak boat along the iconic river.','2 hrs',false],
+['Jim Thompson House','culture',8,'Stunning traditional Thai house with the American silk entrepreneur\'s art collection.','1.5 hrs',false],
+],
+tips:['Download the Grab app — it\'s the safe, metered alternative to haggling with tuk-tuks.',
+'Dress modestly (cover shoulders and knees) when visiting all temples.',
+'Eat at street food stalls where locals eat — busy stalls mean fresh, fast turnover.',
+'Negotiate tuk-tuk prices before getting in, or just use Grab.'],
+checklist:['Download Grab app before arrival','Check temple dress code (cover up)','Exchange or withdraw Thai baht on arrival','Purchase travel insurance (include health coverage)','Check if visa on arrival is still available for your nationality','Get travel vaccinations (Hep A/Typhoid recommended)']};
+
+DB.marrakech={city:'Marrakech',country:'Morocco',currency:'MAD',
+overview:"Morocco's red city is an assault on the senses in the best possible way. Ancient souks, ornate riads, fragrant spices, and the legendary Djemaa el-Fna square make Marrakech utterly one-of-a-kind.",
+bestTime:'March–May or September–November',visaInfo:'Visa-free for US citizens up to 90 days',
+fl:[600,950,2800,7000,'Round-trip from US — often via European hubs (Paris, Madrid)'],
+ac:[12,40,100,350,'Per night in USD. Stay in a riad inside the Medina for the full experience.'],
+fo:[4,15,35,90,'Per person/day. Tagine at a local restaurant is cheap and delicious.'],
+tr:[1,5,8,30,'Petit taxis are cheap; negotiate price before entering or use a ride app.'],
+acts:[
+['Djemaa el-Fna at Dusk','culture',0,'UNESCO square alive with snake charmers, storytellers, and food stalls at nightfall.','Evening',true],
+['Souks of the Medina','shopping',0,'Labyrinthine medieval markets — copper, leather, spices, lanterns, and textiles.','2–3 hrs',true],
+['Majorelle Garden & YSL Museum','nature',18,"Cobalt-blue Art Deco garden created by Yves Saint Laurent — strikingly beautiful.",'2 hrs',true],
+['Traditional Hammam','adventure',20,'Moroccan steam bath with exfoliation, black soap scrub, and full-body massage.','2 hrs',true],
+['Bahia Palace','culture',2,'Stunning 19th-century palace with intricate tilework and fragrant orange gardens.','1–2 hrs',false],
+['Moroccan Cooking Class','food',50,'Learn to make tagine, bastilla, and couscous in a traditional riad kitchen.','4 hrs',true],
+['Koutoubia Mosque (exterior)','culture',0,"Marrakech's largest and most beautiful mosque — illuminated magnificently at night.",'30 mins',false],
+['Tanneries Viewing','culture',5,'Watch centuries-old leather dyeing from rooftop terraces above the vats.','1 hr',false],
+['Day Trip to Atlas Mountains','adventure',60,'Visit Berber villages and waterfalls in the spectacular High Atlas foothills.','Full day',false],
+],
+tips:['Always agree on a price with petit taxi drivers before getting in.',
+'Bargain in the souks — the opening price is typically 3–5x the fair price.',
+'Stay in a riad inside the Medina — it\'s safer, quieter, and far more atmospheric.',
+'Avoid the restaurants directly facing Djemaa el-Fna — overpriced tourist traps.'],
+checklist:['Book a riad inside the Medina early','Exchange USD to Moroccan dirham on arrival','Purchase travel insurance','Learn a few Arabic/French phrases','Check current health and safety advisories','Pack modest clothing (shoulders and knees covered)']};
+
+DB.sydney={city:'Sydney',country:'Australia',currency:'AUD',
+overview:"Australia's harbour city stuns with the iconic Opera House, golden beaches, and a vibrant food and culture scene. Sydney offers world-class experiences under almost perpetually blue skies.",
+bestTime:'September–November or March–May',visaInfo:'US citizens require an ETA (Electronic Travel Authority) — apply online before travel',
+fl:[900,1400,4500,12000,'Round-trip from US West Coast — one of the longest routes'],
+ac:[25,90,200,500,'Per night in USD. Darlinghurst and Surry Hills offer great value.'],
+fo:[10,30,70,160,'Per person/day. Brunches are a serious religion in Sydney.'],
+tr:[10,25,35,85,'Opal card for ferries, trains, and buses — the ferry to Manly is spectacular.'],
+acts:[
+['Sydney Opera House Tour','culture',45,'Tour or catch a performance at the world\'s most iconic performing arts building.','1.5 hrs',true],
+['Sydney Harbour Bridge Climb','adventure',240,'Climb the 134m arch for a 360° harbour view — the ultimate Sydney experience.','3.5 hrs',true],
+['Bondi to Coogee Coastal Walk','nature',0,'Stunning 6km cliff-top trail past beaches, rock pools, and ocean baths.','2–3 hrs',true],
+['Blue Mountains Day Trip','nature',55,'Eucalyptus valleys, sandstone cliffs, and the Three Sisters rock formation.','Full day',true],
+['Taronga Zoo','nature',50,'World-class zoo with koalas, kangaroos, and views of the Opera House.','3–4 hrs',false],
+['Manly Beach Ferry','nature',10,'Ferry from Circular Quay past the Harbour to the beautiful ocean beach.','30 mins',false],
+['The Rocks Weekend Market','culture',0,"Sydney's oldest sandstone precinct with heritage architecture and artisan stalls.",'2 hrs',false],
+['Sydney Fish Market Lunch','food',25,'World\'s second-busiest fish market — oysters, sashimi, and fresh grilled seafood.','1.5 hrs',false],
+['Darling Harbour Evening','food',0,'Waterfront dining precinct with restaurants, bars, and a free fireworks display on Saturdays.','2–3 hrs',false],
+],
+tips:['An Opal card saves money on all public transport — buy one on arrival.',
+'The Manly Ferry is the best cheap sightseeing activity in Sydney ($7 each way).',
+'BYO (Bring Your Own) restaurants allow you to bring your own wine — saves a fortune.',
+'Sydney\'s beaches, parks, and coastal walks are all completely free.'],
+checklist:['Apply for Australian ETA online before departure','Get an Opal card at the airport','Book Harbour Bridge Climb in advance (sells out)','Purchase travel insurance','Download the TripView app for transit','Pack reef-safe sunscreen — UV is intense']};
+
+DB.miami={city:'Miami',country:'USA',currency:'USD',
+overview:"America's most glamorous beach city mixes Art Deco architecture, vibrant Cuban culture, celebrity nightclubs, and year-round sunshine. Miami's food scene and nightlife are truly world-class.",
+bestTime:'November–April (dry season)',visaInfo:'No visa required for US citizens — domestic travel',
+fl:[150,300,1000,3000,'Round-trip varies by departure city'],
+ac:[35,100,200,500,'Per night. South Beach is iconic but expensive; Wynwood is cooler.'],
+fo:[8,25,60,150,'Per person/day. Cuban food and seafood are especially outstanding.'],
+tr:[3,18,25,65,'Uber/Lyft are the main options — public transit is limited.'],
+acts:[
+['South Beach Art Deco Walk','culture',0,'Stroll Ocean Drive past 900 preserved pastel Art Deco buildings from the 1930s–50s.','1–2 hrs',true],
+['Wynwood Walls','culture',0,'World-class outdoor street art museum in Miami\'s coolest, most colourful neighbourhood.','1–2 hrs',true],
+['Everglades Airboat Tour','adventure',55,'Airboat through alligator-filled sawgrass marshes in a UNESCO World Heritage site.','3 hrs',true],
+['Little Havana Food Tour','food',45,'Cuban coffee, croquetas, dominos, and cigars along Calle Ocho with a local guide.','2.5 hrs',true],
+['South Beach Swimming & Sunbathing','nature',0,"America's most iconic beach — white sand, turquoise water, and constant people-watching.",'Half day',true],
+['Pérez Art Museum Miami','culture',20,'Contemporary art in a spectacular bayfront building by Herzog & de Meuron.','2 hrs',false],
+['Vizcaya Museum & Gardens','culture',25,"Gilded Age Italian villa and gardens on Biscayne Bay — wildly photogenic.",'2 hrs',false],
+['Key West Day Trip','adventure',120,'Hemingway\'s home, southernmost point, and the legendary Mallory Square sunset.','Full day',false],
+['Miami Club Nightlife','nightlife',60,'Dance at LIV, E11even, or Mynt — some of America\'s most legendary nightclubs.','Evening',false],
+],
+tips:['Visit South Beach early morning for the best light, fewer crowds, and easier parking.',
+'Little Havana\'s Versailles restaurant is the best Cuban food in the US for very low prices.',
+'Uber and Lyft are essential — Miami\'s public transit is minimal.',
+'Book high-end restaurants and clubs well in advance — Miami fills up fast on weekends.'],
+checklist:['Book Everglades tour in advance','Reserve South Beach hotel early (prices spike)','Purchase travel insurance','Download Uber/Lyft for getting around','Check weather — avoid Atlantic hurricane season (June–November)','Pack high-SPF sunscreen']};
+
+DB['las vegas']={city:'Las Vegas',country:'USA',currency:'USD',
+overview:"The entertainment capital of the world never sleeps and never disappoints. World-class shows, celeb-chef restaurants, incredible pool parties, and the magic of the Strip at night make Vegas utterly unique.",
+bestTime:'March–May or September–November (avoid summer heat)',visaInfo:'No visa required for US citizens — domestic travel',
+fl:[150,280,900,2500,'Round-trip varies widely by departure city'],
+ac:[40,60,150,450,'Per night. Strip hotels range wildly in price — book early for big events.'],
+fo:[8,25,60,150,'Per person/day. Vegas has more celebrity-chef restaurants per mile than anywhere on Earth.'],
+tr:[2,15,20,45,'The Deuce bus runs the whole Strip cheaply. Uber/Lyft for elsewhere.'],
+acts:[
+['Las Vegas Strip at Night','culture',0,'Walk the 4.2-mile neon-lit boulevard of megacasinos and street performers after dark.','2–3 hrs',true],
+['Bellagio Fountains','culture',0,'The free synchronised fountain show that runs every 15–30 minutes — truly spectacular.','30 mins',true],
+['Grand Canyon Day Trip','nature',200,'Helicopter or bus to one of the world\'s great natural wonders — just 4 hrs away.','Full day',true],
+['Fremont Street Experience','culture',0,"Vintage Vegas under a 1,500-ft LED canopy light show — free and dazzling.",'Evening',true],
+['World-Class Show (Cirque, residency)','nightlife',90,'Vegas hosts the world\'s best permanent entertainment — Cirque, comedy, magic, residencies.','2 hrs',true],
+['High Roller Observation Wheel','adventure',30,"World's tallest observation wheel — 360° views over the Mojave Desert.",'30 mins',false],
+['Zion National Park Day Trip','nature',150,'Red-rock canyon paradise just 2.5 hrs from the Strip — jaw-dropping hikes.','Full day',false],
+['Celebrity Chef Restaurant','food',120,"Vegas has Joel Robuchon, Gordon Ramsay, Nobu, and more — treat yourself.",'2 hrs',false],
+['Mob Museum','culture',32,'Fascinating history of organized crime in the original federal courthouse.','2 hrs',false],
+['Casino Floor Experience','nightlife',50,'Play blackjack, craps, or slots — every Vegas casino is architecturally stunning.','Evening',false],
+],
+tips:['The Deuce double-decker bus covers the entire Strip for $6/24 hours.',
+'Free buffets are largely gone, but casino bars often offer cheap happy-hour deals.',
+'Book shows and restaurants well ahead — the best ones sell out weeks in advance.',
+'Avoid visiting in July–August when temperatures regularly exceed 110°F (43°C).'],
+checklist:['Book shows and special dinners well ahead','Reserve your hotel room early for weekends/events','Purchase travel insurance','Download Uber/Lyft for off-Strip transport','Book Grand Canyon or Zion tour','Pack light clothes — daytime is very hot except winter']};
+
+DB['san francisco']={city:'San Francisco',country:'USA',currency:'USD',
+overview:"Perched on hills above one of the world's most beautiful bays, San Francisco is a city of innovation, diversity, and natural splendor. World-class food, iconic cable cars, and stunning coastal scenery await.",
+bestTime:'September–October (warmest, clearest)',visaInfo:'No visa required for US citizens — domestic travel',
+fl:[150,350,1200,3500,'Round-trip varies by departure city'],
+ac:[45,150,280,650,'Per night. Fisherman\'s Wharf is touristy; Mission and Hayes Valley have more character.'],
+fo:[10,40,90,200,'Per person/day. SF has one of America\'s most exceptional dining scenes.'],
+tr:[5,28,38,95,'Clipper card for BART, Muni, and cable cars. Very walkable downtown.'],
+acts:[
+['Golden Gate Bridge Walk','nature',0,'Walk or cycle across the iconic 1.7-mile suspension bridge — free and spectacular.','1–2 hrs',true],
+['Alcatraz Island Tour','culture',45,'Audio tour of the legendary island federal penitentiary — book weeks ahead.','3 hrs',true],
+['Cable Car Ride','culture',8,'Ride one of the world\'s last manually operated cable car systems up Nob Hill.','30 mins',true],
+['Muir Woods Redwood Forest','nature',15,'Ancient cathedral-like redwood forest just 20 minutes from the city.','3 hrs',true],
+['Fisherman\'s Wharf & Pier 39','food',0,'Sea lions, sourdough bowls, and clam chowder at the historic waterfront.','2 hrs',false],
+['Mission District: Murals & Tacos','food',15,'World\'s best mission-style burritos and Chicano murals in the vibrant Mission.','2 hrs',true],
+['Ferry Building Saturday Market','food',20,'Artisan food stalls and farmers market in the gorgeous 1898 ferry terminal.','1–2 hrs',false],
+['Lands End Coastal Trail','nature',0,'Dramatic cliff-top trail with Golden Gate views and a labyrinth on the shore.','2 hrs',false],
+['Napa/Sonoma Wine Country','food',120,'World-class wine regions with tasting rooms and vineyard views — 1 hr from the city.','Full day',false],
+['SFMOMA','culture',30,'Permanent collection of modern and contemporary art in a stunning Herzog building.','2–3 hrs',false],
+],
+tips:['San Francisco summers are cold and foggy — bring layers even in July.',
+'BART from SFO airport to downtown is $10; taxis are $60+.',
+'The Mission District has the best cheap food in the city — $10 burritos that are better than anywhere.',
+'Book Alcatraz tickets at least 2 weeks ahead — it genuinely sells out.'],
+checklist:['Book Alcatraz tickets well in advance','Get a Clipper card for all transit','Reserve special dinners early (SF restaurants are competitive)','Purchase travel insurance','Pack a jacket — Bay fog is cold even in summer','Book Muir Woods timed entry permit online']};
+
+DB['mexico city']={city:'Mexico City',country:'Mexico',currency:'MXN',
+overview:"CDMX is one of the world's great cities — sprawling, vibrant, and overflowing with ancient history, extraordinary food, world-class art, and some of Latin America's best nightlife.",
+bestTime:'March–May (dry, warm, not rainy)',visaInfo:'Visa-free for US citizens up to 180 days',
+fl:[250,450,1500,4000,'Round-trip from US cities — many direct flights'],
+ac:[15,45,100,280,'Per night in USD. Condesa, Roma, and Polanco are top neighborhoods.'],
+fo:[4,15,35,90,'Per person/day. CDMX has the best tacos and food scene in the world.'],
+tr:[1,5,8,35,'Mexico City Metro is 5 pesos per ride — the world\'s cheapest. Uber also cheap.'],
+acts:[
+['Teotihuacán Pyramids','culture',6,'Climb the Sun and Moon pyramids of the ancient "City of the Gods," 50 km from the city.','Full day',true],
+['Frida Kahlo Museum (La Casa Azul)','culture',13,"The Blue House where Mexico's most beloved artist lived and worked — book ahead.",'2 hrs',true],
+['Zócalo & Metropolitan Cathedral','culture',0,'The world\'s second-largest city square, surrounded by baroque colonial grandeur.','1–2 hrs',true],
+['CDMX Street Food Tour','food',25,'Tacos al pastor, tamales, elotes, and churros with a local foodie guide.','3 hrs',true],
+['Xochimilco Floating Gardens','nature',20,'Drift through ancient Aztec canals on colourful trajineras — very festive on weekends.','3 hrs',true],
+['Chapultepec Park & Castle','nature',0,"Latin America's largest urban park — free entry, with a hilltop imperial castle.",'3 hrs',false],
+['Lucha Libre Wrestling','nightlife',15,'Wild, theatrical Mexican pro wrestling in a packed arena — one of a kind.','2 hrs',false],
+['Museo Soumaya','culture',0,'Free museum with a jaw-dropping silver building housing 66,000 artworks.','2 hrs',false],
+['Polanco Fine Dining','food',65,'Mexico City now has more Michelin-starred restaurants than most European capitals.','2–3 hrs',false],
+],
+tips:['Drink only bottled or filtered water — tap water is not safe for visitors.',
+'The Metro costs 5 pesos per ride (~$0.25) — use it everywhere.',
+'Uber is very cheap and much safer than hailing a street taxi.',
+'Altitude is 7,350 ft — take it easy on day one to avoid altitude sickness.'],
+checklist:['Download Uber app — safer than street taxis','Book Frida Kahlo Museum tickets online','Purchase travel insurance (include medical)','Stock up on bottled water immediately','Check current safety advisories for specific neighborhoods','Pack stomach medicine — food transitions can be rough at first']};
+
+DB['buenos aires']={city:'Buenos Aires',country:'Argentina',currency:'ARS',
+overview:"The Paris of South America seduces with tango, incredible steak, passionate football culture, and a vibrant arts scene. Buenos Aires offers European elegance at incredibly affordable prices.",
+bestTime:'March–May or September–November',visaInfo:'Visa-free for US citizens up to 90 days',
+fl:[700,1100,3500,9000,'Round-trip from major US cities'],
+ac:[12,40,90,250,'Per night in USD. Palermo and San Telmo are the best neighborhoods.'],
+fo:[5,12,28,70,'Per person/day in USD. Argentine steak is world-famous and very affordable.'],
+tr:[1,5,8,40,'Subte (metro) + buses are cheap. Download the Moovit app.'],
+acts:[
+['San Telmo Market & Tango','culture',0,'Antique market and spontaneous tango dancers in Buenos Aires\'s oldest quarter.','2–3 hrs',true],
+['Tango Show & Dinner','nightlife',80,'Passionate tango performance at one of the city\'s legendary milongas with dinner.','3 hrs',true],
+['Argentine Asado Dinner','food',40,'Traditional wood-fire grill with prime cuts — Argentina\'s greatest cultural institution.','2 hrs',true],
+['La Boca & Caminito','culture',0,'Colorful painted alley in the birthplace of tango — vibrant and photogenic.','1–2 hrs',true],
+['Recoleta Cemetery','culture',0,"Grand neoclassical necropolis where Evita and Argentine legends are buried.",'1.5 hrs',true],
+['Palermo Neighbourhood','shopping',0,"Buenos Aires's hippest district — boutiques, restaurants, parks, and great coffee.",'2–3 hrs',false],
+['MALBA Modern Art Museum','culture',12,'Outstanding Latin American art including Frida Kahlo and Diego Rivera.','2 hrs',false],
+['Tigre Delta Day Trip','nature',25,'Take the train to the lush Paraná river delta and explore by boat.','Full day',false],
+['Watching a Football (Soccer) Match','adventure',30,'Experiencing a Boca Juniors or River Plate match is one of sport\'s greatest spectacles.','3 hrs',false],
+],
+tips:['Always pay with USD cash when possible — blue-rate exchange is significantly better than official.',
+'Eat dinner late (9–11pm) like the locals — restaurants are empty before that.',
+'Palermo and Recoleta are the safest neighborhoods for tourists.',
+'Argentina has excellent wine — Malbec from Mendoza is exceptional and very cheap here.'],
+checklist:['Exchange USD to ARS at a reputable currency exchange (not official banks)','Purchase travel insurance','Book tango show dinner in advance','Download Uber and Moovit apps','Check current economic situation — prices fluctuate rapidly','Keep cash on hand — many places still don\'t accept cards']};
+
+DB['san diego']={city:'San Diego',country:'USA',currency:'USD',
+overview:"America's finest city lives up to its nickname with near-perfect weather, world-class beaches, craft beer culture, and a laid-back vibe that's hard to match anywhere. From Balboa Park to the Pacific, San Diego is endlessly enjoyable.",
+bestTime:'Year-round — May–October for peak beach weather',visaInfo:'No visa required for US citizens — domestic travel',
+fl:[150,300,900,2500,'Round-trip varies by departure city — many direct flights from major US hubs'],
+ac:[40,110,200,450,'Per night. Gaslamp Quarter and Little Italy are the liveliest areas.'],
+fo:[8,25,55,130,'Per person/day. Excellent Mexican food and a booming craft beer scene.'],
+tr:[3,18,22,55,'Uber/Lyft are the main options; MTS trolley and bus cover major areas.'],
+acts:[
+['Balboa Park Museums & Gardens','culture',0,'A 1,200-acre urban park with 17 museums, stunning Spanish Colonial architecture, and the famous San Diego Zoo.','Half day',true],
+['San Diego Zoo','nature',67,'One of the world\'s best zoos with pandas, koalas, and over 3,500 animals on 100 acres.','4–5 hrs',true],
+['Old Town San Diego','culture',0,'California\'s birthplace — preserved adobe buildings, mariachi music, and excellent Mexican food.','2–3 hrs',true],
+['La Jolla Cove & Sea Caves','nature',0,'Stunning cliffs, crystal-clear snorkeling water, and a beach full of basking sea lions and harbor seals.','2–3 hrs',true],
+['Coronado Island & Hotel Del','culture',10,'Ferry to the iconic Victorian resort hotel and gorgeous Coronado Beach — consistently rated one of America\'s best.','Half day',true],
+['USS Midway Museum','culture',26,'Tour a massive decommissioned aircraft carrier with 60+ aircraft and interactive exhibits.','3 hrs',false],
+['Gaslamp Quarter Nightlife','nightlife',40,'San Diego\'s historic entertainment district packed with rooftop bars, clubs, and live music venues.','Evening',false],
+['Craft Beer Tour','food',45,'San Diego has more craft breweries per capita than any US city — tour the best in North Park or Little Italy.','3 hrs',true],
+['Torrey Pines State Reserve','nature',0,'Dramatic 2,000-acre coastal park with rare Torrey pines, ocean views, and beach access.','2–3 hrs',false],
+['Birch Aquarium','nature',22,'World-class aquarium run by Scripps Institution of Oceanography with giant kelp forests and tide pools.','2 hrs',false],
+['Mission Beach & Boardwalk','nature',0,'Classic 3-mile beach boardwalk perfect for cycling, rollerblading, beach volleyball, and people-watching.','2–3 hrs',false],
+['Tijuana Day Trip','food',20,'Cross the US–Mexico border for world-class street tacos, local art, and a very different city experience.','Half day',false],
+],
+tips:['San Diego has year-round great weather — pack a light jacket for evenings even in summer.',
+'The best authentic Mexican food is in San Diego itself — try Barrio Logan or Old Town.',
+'The San Diego Zoo and Safari Park combo ticket saves money if you plan to visit both.',
+'Parking downtown is expensive — use the MTS trolley or rideshare to reach the Gaslamp and Balboa Park.'],
+checklist:['Book San Diego Zoo tickets online (save vs. gate price)','Reserve popular restaurants in the Gaslamp/Little Italy','Purchase travel insurance','Download Uber/Lyft for getting around','Pack reef-safe sunscreen','Bring a light jacket — evenings near the coast are cool year-round']};
+
+// ── ALIASES ────────────────────────────────────────────
+const ALIAS={
+  'nyc':'new york','new york city':'new york','manhattan':'new york','ny':'new york',
+  'sd':'san diego','san diego ca':'san diego','san diego california':'san diego',
+  'sf':'san francisco','l.a.':'los angeles','la':'los angeles',
+  'ubud':'bali','seminyak':'bali','kuta':'bali','canggu':'bali','denpasar':'bali',
+  'cdmx':'mexico city','df':'mexico city',
+  'bkk':'bangkok','krung thep':'bangkok',
+  'sin city':'las vegas',
+  'ba':'buenos aires',
+  'lon':'london','uk':'london',
+};
+
+function lookupCity(raw){
+  const q=raw.toLowerCase().replace(/[^a-z\s]/g,'').trim();
+  if(DB[q]) return {d:DB[q],found:true};
+  if(ALIAS[q]&&DB[ALIAS[q]]) return {d:DB[ALIAS[q]],found:true};
+  for(const k of Object.keys(DB)){if(q.includes(k)||k.includes(q)) return {d:DB[k],found:true};}
+  for(const w of q.split(' ')){if(w.length>3&&DB[w]) return {d:DB[w],found:true};}
+  return {d:makeFallback(raw),found:false};
+}
+
+function makeFallback(name){
+  return {city:name,country:'',currency:'USD',
+    overview:`Your trip to ${name}! Estimates below are generic averages — adjust them in the Budget tab based on your research.`,
+    bestTime:'Research local seasons',visaInfo:'Check visa requirements for your nationality',
+    fl:[300,600,1800,4500,'Search Google Flights for accurate prices to this destination'],
+    ac:[35,90,160,380,'Adjust based on local accommodation research'],
+    fo:[12,30,65,130,'Adjust based on the destination\'s cost of living'],
+    tr:[7,18,25,60,'Adjust based on local transport options'],
+    acts:[
+      ['City Highlights Tour','culture',40,'Guided overview of the city\'s top sights and history.','3–4 hrs',true],
+      ['Local Food Tour','food',50,'Explore the cuisine and street food scene with a local guide.','3 hrs',true],
+      ['Main Museum or Landmark','culture',20,'Visit the city\'s most important cultural or historical site.','2–3 hrs',true],
+      ['Local Markets','shopping',0,'Browse markets for souvenirs, fresh food, and local crafts.','2 hrs',false],
+      ['Day Trip Outside the City','adventure',60,'Explore nearby countryside or natural attractions.','Full day',false],
+      ['Sunset Viewpoint','nature',0,'Find the best spot in the city to watch the sunset.','1–2 hrs',false],
+      ['Local Dining & Nightlife','nightlife',30,'Experience local restaurants and bar culture.','Evening',false],
+    ],
+    tips:['Research the best neighborhoods to stay in for your budget.',
+      'Look up local customs, dress codes, and tipping etiquette.',
+      'Book accommodation and flights at least 4–6 weeks in advance.'],
+    checklist:['Book flights and accommodation','Check visa requirements','Get travel insurance','Notify your bank','Download offline maps','Research local transport options']};
+}
+
+// ── INIT ───────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  const t=new Date(), e=new Date(t); e.setDate(t.getDate()+7);
+  document.getElementById('sd').value=t.toISOString().split('T')[0];
+  document.getElementById('ed').value=e.toISOString().split('T')[0];
+  calcDays(); renderBT(); loadState();
+});
+
+// ── TAB SWITCH ─────────────────────────────────────────
+function sw(btn,id){
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  ['ov','bud','fl','act','sum'].forEach(t=>document.getElementById('t-'+t).style.display=t===id?'block':'none');
+  if(id==='sum') renderSum();
+}
+
+// ── DATE ──────────────────────────────────────────────
+function calcDays(){
+  const s=document.getElementById('sd').value, e=document.getElementById('ed').value;
+  if(s&&e){
+    const d=Math.max(1,Math.ceil((new Date(e)-new Date(s))/86400000));
+    S.days=d; S.bud.hotel.nights=d; S.bud.food.days=d; S.bud.transport.days=d;
+    if(S.data) applyBudgetType(); else renderBT();
+    updateStats();
+  }
+}
+
+// ── PLAN TRIP ─────────────────────────────────────────
+function go(){
+  const raw=document.getElementById('ci').value.trim();
+  if(!raw){alert('Please enter a destination!');return;}
+  const {d,found}=lookupCity(raw);
+  S.city=raw; S.data=d;
+  renderHero(d,found);
+  applyBudgetType();
+  renderFlights(d);
+  renderActivities(d.acts);
+  document.getElementById('statsRow').style.display='grid';
+  updateStats(); saveState();
+}
+
+// ── HERO ──────────────────────────────────────────────
+function renderHero(d,found){
+  const banner=!found?`<div class="banner">⚠️ <strong>${d.city}</strong> isn't in our database yet — showing generic estimates. Adjust the numbers in the Budget tab after researching your destination.</div>`:'';
+  document.getElementById('heroArea').innerHTML=`${banner}
+    <div class="hero">
+      <h2>📍 ${d.city}${d.country?', '+d.country:''}</h2>
+      <p>${d.overview}</p>
+      <div class="hmeta">
+        <span>📅 ${d.bestTime}</span>
+        ${d.currency?`<span>💱 Currency: ${d.currency}</span>`:''}
+        <span>🛂 ${d.visaInfo}</span>
+      </div>
+    </div>`;
+  if(d.checklist?.length){
+    document.getElementById('clCard').style.display='block';
+    document.getElementById('clItems').innerHTML=d.checklist.map((x,i)=>`<div class="cli"><input type="checkbox" id="cl${i}"><label for="cl${i}">${x}</label></div>`).join('');
+  }
+}
+
+// ── BUDGET TYPE ───────────────────────────────────────
+function applyBudgetType(){
+  if(!S.data) return;
+  const d=S.data, bt=document.getElementById('bt').value, n=S.ppl;
+  // fl: [budget,economy,business,first,note]  ac: [hostel,budgetHotel,midRange,luxury,note]
+  const fi={b:0,m:1,l:2}[bt];
+  const ai={b:1,m:2,l:3}[bt];
+  const foi={b:1,m:2,l:3}[bt];
+  const tri={b:0,m:1,l:2}[bt];
+  S.bud.flights.pp=d.fl[fi]; S.bud.flights.est=d.fl[fi]*n;
+  S.bud.hotel.pn=d.ac[ai]; S.bud.hotel.est=d.ac[ai]*S.days;
+  S.bud.food.pd=d.fo[foi]*n; S.bud.food.est=d.fo[foi]*n*S.days;
+  S.bud.transport.pd=d.tr[tri]; S.bud.transport.est=d.tr[tri]*S.days;
+  S.bud.insurance.est=Math.round(5*n*S.days);
+  const sub=S.bud.flights.est+S.bud.hotel.est+S.bud.food.est+S.bud.transport.est;
+  S.bud.misc.est=Math.round(sub*.1);
+  renderBT(); updateStats();
+}
+function onPpl(){S.ppl=parseInt(document.getElementById('np').value)||1; if(S.data)applyBudgetType(); else{updateStats();renderBT();}}
+
+// ── BUDGET TABLE ──────────────────────────────────────
+const CATS=[
+  {k:'flights',   ic:'✈️', lb:'Flights',          det:()=>`Round trip × ${S.ppl} traveler(s)`},
+  {k:'hotel',     ic:'🏨', lb:'Accommodation',     det:()=>`$${S.bud.hotel.pn||0}/night × ${S.bud.hotel.nights} nights`},
+  {k:'food',      ic:'🍽️',lb:'Food & Dining',     det:()=>`$${S.bud.food.pd||0}/day × ${S.bud.food.days} days`},
+  {k:'transport', ic:'🚌', lb:'Local Transport',   det:()=>`$${S.bud.transport.pd||0}/day × ${S.bud.transport.days} days`},
+  {k:'activities',ic:'🎯', lb:'Activities',         det:()=>'Auto-totaled from Activities tab'},
+  {k:'shopping',  ic:'🛍️',lb:'Shopping',           det:()=>'Souvenirs & personal items'},
+  {k:'insurance', ic:'🛡️',lb:'Travel Insurance',   det:()=>`~$5/person/day`},
+  {k:'misc',      ic:'💼', lb:'Miscellaneous',      det:()=>'Emergency fund (~10%)'},
+];
+function renderBT(){
+  document.getElementById('bBody').innerHTML=CATS.map(c=>{
+    const b=S.bud[c.k], ro=c.k==='activities';
+    return `<tr>
+      <td><span>${c.ic}</span> <strong>${c.lb}</strong></td>
+      <td style="font-size:.76rem;color:var(--m)">${c.det()}</td>
+      <td><input type="number" class="ai${ro?' ro':''}" value="${Math.round(b.est||0)}" ${ro?'readonly':`onchange="uEst('${c.k}',this.value)"`}></td>
+      <td><input type="number" class="ai" value="${Math.round(b.act||0)}" onchange="uAct('${c.k}',this.value)"></td>
+      <td><input type="text" class="ni" value="${b.note||''}" placeholder="Add note…" onchange="S.bud['${c.k}'].note=this.value"></td>
+    </tr>`;
+  }).join('');
+  recalc();
+}
+function uEst(k,v){S.bud[k].est=parseFloat(v)||0; recalc(); updateStats();}
+function uAct(k,v){S.bud[k].act=parseFloat(v)||0; recalc();}
+function recalc(){
+  const est=Object.values(S.bud).reduce((s,b)=>s+(parseFloat(b.est)||0),0);
+  const act=Object.values(S.bud).reduce((s,b)=>s+(parseFloat(b.act)||0),0);
+  document.getElementById('estT').textContent=$$( est);
+  document.getElementById('actT').textContent=$$(act);
+}
+
+// ── FLIGHTS ───────────────────────────────────────────
+function renderFlights(d){
+  const [fb,fe,fbs,ff,fn]=d.fl, [ah,abh,am,al,an]=d.ac, [tp,tr,tt,tc,tn]=d.tr, [sf,bf,mf,uf,fn2]=d.fo;
+  document.getElementById('flArea').innerHTML=`
+    <div class="card"><div class="ct">✈️ Flight Costs to ${d.city}</div>
+      <p style="font-size:.8rem;color:var(--m);margin-bottom:.9rem">${fn}</p>
+      <div class="fgrid">
+        ${[['Budget',fb,'Basic fare'],[' Economy',fe,'Standard class (selected)'],[' Business',fbs,'Premium cabin'],[' First Class',ff,'Full luxury']].map(([l,p,s],i)=>`
+          <div class="fc${i===1?' on':''}" onclick="pickF(this,${p})">
+            <div class="fcl">${l}</div><div class="fcp">${$$(p)}</div><div class="fcs">${s}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="card"><div class="ct">🏨 Accommodation in ${d.city}</div>
+      <div class="igrid">
+        ${[['🛏️','Hostel',ah,'/night'],['🏨','Budget Hotel',abh,'/night'],['🏩','Mid-Range',am,'/night'],['🏰','Luxury',al,'/night']].map(([i,l,p,u])=>`
+          <div class="it"><div class="ii">${i}</div><div class="il">${l}</div><div class="ip">${$$(p)}<span class="iu">${u}</span></div></div>`).join('')}
+      </div>
+      <p style="font-size:.78rem;color:var(--m);margin-top:.8rem">${an}</p>
+    </div>
+    <div class="card"><div class="ct">🚌 Local Transport</div>
+      <div class="igrid">
+        ${[['🚇','Public Transit',tp,'/day'],['🚗','Rideshare',tr,'/day'],['🚕','Taxi',tt,'/trip'],['🚙','Car Rental',tc,'/day']].map(([i,l,p,u])=>`
+          <div class="it"><div class="ii">${i}</div><div class="il">${l}</div><div class="ip">${$$(p)}<span class="iu">${u}</span></div></div>`).join('')}
+      </div>
+      <p style="font-size:.78rem;color:var(--m);margin-top:.8rem">${tn}</p>
+    </div>
+    <div class="card"><div class="ct">🍽️ Food & Dining</div>
+      <div class="igrid">
+        ${[['🥡','Street Food',sf,'/day'],['🍜','Budget',bf,'/day'],['🍽️','Mid-Range',mf,'/day'],['🥂','Upscale',uf,'/day']].map(([i,l,p,u])=>`
+          <div class="it"><div class="ii">${i}</div><div class="il">${l}</div><div class="ip">${$$(p)}<span class="iu">${u}</span></div></div>`).join('')}
+      </div>
+      <p style="font-size:.78rem;color:var(--m);margin-top:.8rem">${fn2}</p>
+    </div>`;
+}
+function pickF(el,p){
+  document.querySelectorAll('.fc').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  S.bud.flights.est=p*S.ppl; renderBT(); updateStats();
+}
+
+// ── ACTIVITIES ────────────────────────────────────────
+const CE={culture:'🏛️',nature:'🌿',food:'🍜',nightlife:'🌙',shopping:'🛍️',adventure:'🧗'};
+function renderActivities(acts){
+  S.acts=acts.map((a,i)=>({id:`c${i}`,name:a[0],category:a[1],cost:a[2],description:a[3],duration:a[4],mustSee:a[5],checked:false}));
+  drawActs('all');
+}
+function drawActs(filter){
+  const grid=document.getElementById('aGrid'), empty=document.getElementById('actEmpty'), bar=document.getElementById('atbar');
+  if(!S.acts.length){empty.style.display='block';grid.style.display='none';bar.style.display='none';return;}
+  empty.style.display='none'; grid.style.display='grid'; bar.style.display='flex';
+  const shown=filter==='all'?S.acts:S.acts.filter(a=>a.category===filter);
+  grid.innerHTML=shown.map(a=>`
+    <div class="ac${a.checked?' ck':''}" id="a${a.id}" onclick="togA('${a.id}')">
+      ${a.mustSee?'<span class="mb">⭐ Must-See</span>':''}
+      <input type="checkbox" class="acb" ${a.checked?'checked':''} onclick="event.stopPropagation();togA('${a.id}')">
+      <div class="ai2">
+        <div class="ah"><span class="an">${a.name}</span><span class="amc">${a.cost===0?'Free':$$(a.cost)}</span></div>
+        <div class="ad">${a.description}</div>
+        <div class="atgs">
+          <span class="at ${a.category}">${CE[a.category]||'🎯'} ${a.category}</span>
+          ${a.duration?`<span class="at dur">⏱ ${a.duration}</span>`:''}
+        </div>
+      </div>
+    </div>`).join('');
+  calcActTot();
+}
+function togA(id){
+  const a=S.acts.find(x=>x.id===id); if(!a) return;
+  a.checked=!a.checked;
+  const el=document.getElementById('a'+id); if(el){el.classList.toggle('ck',a.checked); const cb=el.querySelector('.acb'); if(cb)cb.checked=a.checked;}
+  calcActTot();
+}
+function calcActTot(){
+  const tot=S.acts.filter(a=>a.checked).reduce((s,a)=>s+(parseFloat(a.cost)||0),0);
+  document.getElementById('atot').textContent=$$(tot);
+  S.bud.activities.est=tot;
+  // Update activities row in budget table if rendered
+  document.querySelectorAll('#bBody .ai.ro').forEach(el=>el.value=Math.round(tot));
+  recalc(); updateStats();
+}
+function fAct(cat,btn){
+  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); drawActs(cat);
+}
+function addAct(){
+  const name=document.getElementById('nn').value.trim(); if(!name){alert('Please enter a name.');return;}
+  S.acts.push({id:`u${Date.now()}`,name,category:document.getElementById('nc').value,cost:parseFloat(document.getElementById('nco').value)||0,duration:document.getElementById('nd').value,description:document.getElementById('ndesc').value||name,mustSee:false,checked:true});
+  ['nn','nco','nd','ndesc'].forEach(id=>document.getElementById(id).value='');
+  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on')); document.querySelector('.fb').classList.add('on');
+  drawActs('all');
+}
+
+// ── STATS ─────────────────────────────────────────────
+function updateStats(){
+  S.ppl=parseInt(document.getElementById('np').value)||1;
+  const tot=Object.values(S.bud).reduce((s,b)=>s+(parseFloat(b.est)||0),0);
+  document.getElementById('stot').textContent=$$(tot);
+  document.getElementById('spd').textContent=S.days>0?$$(tot/S.days):'$0';
+  document.getElementById('spp').textContent=S.ppl>0?$$(tot/S.ppl):'$0';
+  document.getElementById('sdays').textContent=S.days;
+}
+
+// ── SUMMARY ───────────────────────────────────────────
+const CLRS={flights:'#4f46e5',hotel:'#0891b2',food:'#f59e0b',transport:'#10b981',activities:'#8b5cf6',shopping:'#ec4899',insurance:'#6366f1',misc:'#94a3b8'};
+const LBSM={flights:'✈️ Flights',hotel:'🏨 Hotel',food:'🍽️ Food',transport:'🚌 Transport',activities:'🎯 Activities',shopping:'🛍️ Shopping',insurance:'🛡️ Insurance',misc:'💼 Misc'};
+function renderSum(){
+  const tot=Object.values(S.bud).reduce((s,b)=>s+(parseFloat(b.est)||0),0);
+  document.getElementById('sumBars').innerHTML=Object.entries(S.bud).map(([k,b])=>{
+    const e=parseFloat(b.est)||0, pct=tot>0?(e/tot*100).toFixed(1):0;
+    return `<div class="br"><div class="bl"><span>${LBSM[k]}</span><span>${$$(e)} (${pct}%)</span></div><div class="btr"><div class="bf" style="width:${pct}%;background:${CLRS[k]}"></div></div></div>`;
+  }).join('');
+  const act=Object.values(S.bud).reduce((s,b)=>s+(parseFloat(b.act)||0),0), rem=tot-act;
+  document.getElementById('hGrid').innerHTML=`
+    <div class="ht"><div class="hl">Estimated Total</div><div class="hv" style="color:var(--p)">${$$(tot)}</div></div>
+    <div class="ht"><div class="hl">Per Day</div><div class="hv" style="color:var(--c)">${S.days>0?$$(tot/S.days):'$0'}</div></div>
+    <div class="ht"><div class="hl">Per Person</div><div class="hv" style="color:var(--a)">${S.ppl>0?$$(tot/S.ppl):'$0'}</div></div>
+    ${act>0?`<div class="ht"><div class="hl">Spent So Far</div><div class="hv" style="color:var(--a)">${$$(act)}</div></div>
+    <div class="ht"><div class="hl">Remaining</div><div class="hv" style="color:${rem>=0?'var(--g)':'var(--r)'}">${$$(rem)}</div></div>`
+    :'<div class="ht" style="grid-column:span 2"><div class="hl">Track Spending</div><div style="font-size:.82rem;color:var(--m)">Enter actual costs in the Budget tab to track remaining budget.</div></div>'}`;
+  if(S.data?.tips?.length){
+    document.getElementById('tipsCard').style.display='block';
+    document.getElementById('tipsCity').textContent=S.data.city;
+    document.getElementById('tipsList').innerHTML=S.data.tips.map(t=>`<li>${t}</li>`).join('');
+  }
+}
+
+// ── PERSIST ───────────────────────────────────────────
+function saveState(){localStorage.setItem('tb_state',JSON.stringify({city:S.city,data:S.data,days:S.days,bud:S.bud,acts:S.acts}));}
+function loadState(){
+  const raw=localStorage.getItem('tb_state'); if(!raw) return;
+  try{
+    const d=JSON.parse(raw); if(!d.city) return;
+    document.getElementById('ci').value=d.city;
+    S.city=d.city; S.data=d.data; S.days=d.days;
+    S.bud=Object.assign({},S.bud,d.bud); S.acts=d.acts||[];
+    if(d.data){renderHero(d.data,true); renderFlights(d.data); document.getElementById('statsRow').style.display='grid';}
+    if(S.acts.length){drawActs('all');}
+    renderBT(); updateStats();
+  }catch(e){console.warn(e);}
+}
+
+// ── UTILS ─────────────────────────────────────────────
+function $$(n){return '$'+Math.round(parseFloat(n)||0).toLocaleString();}
+</script>
+</body>
+</html>
