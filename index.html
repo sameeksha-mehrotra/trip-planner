@@ -129,8 +129,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .empty .ei{font-size:2.75rem;margin-bottom:.8rem}
 .empty h3{font-size:1rem;color:var(--t);margin-bottom:.35rem}
 .empty p{font-size:.86rem;max-width:320px;margin:0 auto}
+/* itinerary */
+.dayc{border:1px solid var(--b);border-radius:12px;margin-bottom:.9rem;overflow:hidden}
+.dayh{display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding:.8rem 1rem;background:rgba(79,70,229,.05);border-bottom:1px solid var(--b);flex-wrap:wrap}
+.dayh.wknd{background:rgba(245,158,11,.09)}
+.dayt{font-weight:700;font-size:.95rem}
+.daysub{font-size:.74rem;color:var(--m)}
+.daypill{font-size:.68rem;font-weight:700;padding:.14rem .55rem;border-radius:20px;background:var(--b);color:var(--m);text-transform:uppercase;letter-spacing:.04em}
+.daypill.we{background:var(--a);color:#fff}
+.daycost{font-weight:700;color:var(--p);font-size:.95rem;white-space:nowrap}
+.dayb{padding:.7rem 1rem}
+.itrow{display:flex;justify-content:space-between;gap:.6rem;padding:.42rem 0;font-size:.85rem;border-bottom:1px dashed var(--b)}
+.itrow:last-child{border-bottom:none}
+.itrow .il2{color:var(--m);font-size:.76rem}
+.itact{display:flex;gap:.5rem;align-items:baseline}
+.itact .ico{flex-shrink:0}
+.whatif{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+.wcard{border:1px solid var(--b);border-radius:11px;padding:.9rem}
+.wcard h4{font-size:.82rem;margin-bottom:.6rem}
+.wopt{display:flex;justify-content:space-between;gap:.5rem;padding:.35rem 0;font-size:.83rem;border-bottom:1px dashed var(--b)}
+.wopt:last-child{border-bottom:none}
+.wopt.on{font-weight:700;color:var(--p)}
+.wopt .wv{white-space:nowrap}
+.wsave{font-size:.7rem;font-weight:600}
 /* responsive */
-@media(max-width:800px){.tctrl{grid-template-columns:1fr 1fr 1fr}.sg{grid-template-columns:repeat(2,1fr)}.fgrid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:800px){.tctrl{grid-template-columns:1fr 1fr 1fr}.sg{grid-template-columns:repeat(2,1fr)}.fgrid{grid-template-columns:repeat(2,1fr)}.whatif{grid-template-columns:1fr}}
 @media(max-width:560px){.htop{flex-direction:column}.srch{max-width:100%}.tctrl{grid-template-columns:1fr 1fr}.fr{grid-template-columns:1fr}.tabs{top:250px}}
 </style>
 </head>
@@ -157,6 +180,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       </select>
     </div>
   </div>
+  <div class="tctrl" style="grid-template-columns:1fr 1fr 1fr;margin-top:.65rem">
+    <div class="cg"><label>🍽️ Meal Style</label>
+      <select id="meal" onchange="onMeal()">
+        <option value="home">🏠 Home-cooked (groceries)</option>
+        <option value="mix">🥘 Mix of cooking & dining out</option>
+        <option value="out" selected>🍽️ Mostly restaurants</option>
+        <option value="delivery">🛵 Delivery apps</option>
+      </select>
+    </div>
+    <div class="cg"><label>🚗 Getting Around</label>
+      <select id="tstyle" onchange="onTransport()">
+        <option value="auto" selected>Auto (match budget)</option>
+        <option value="transit">🚇 Public transit</option>
+        <option value="rideshare">🚗 Rideshare (Uber/Lyft)</option>
+        <option value="taxi">🚕 Taxi</option>
+        <option value="rental">🚙 Rental car</option>
+      </select>
+    </div>
+    <div class="cg"><label>💡 Trip Style Impact</label>
+      <div id="styleHint" style="font-size:.72rem;opacity:.8;padding:.42rem 0;line-height:1.35">Pick dates &amp; a destination to see how choices change your cost.</div>
+    </div>
+  </div>
 </div>
 
 <div class="tabs">
@@ -164,6 +209,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <button class="tb" onclick="sw(this,'bud')">💰 Budget</button>
   <button class="tb" onclick="sw(this,'fl')">✈️ Flights & Stay</button>
   <button class="tb" onclick="sw(this,'act')">🎯 Activities</button>
+  <button class="tb" onclick="sw(this,'iti')">📅 Itinerary</button>
   <button class="tb" onclick="sw(this,'sum')">📊 Summary</button>
 </div>
 
@@ -219,6 +265,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
   </div>
 
+  <div id="t-iti" style="display:none">
+    <div id="itiArea"><div class="card empty"><div class="ei">📅</div><h3>No itinerary yet</h3><p>Enter a destination and set your start &amp; end dates to generate a day-by-day plan with predicted daily costs.</p></div></div>
+  </div>
+
   <div id="t-sum" style="display:none">
     <div class="card"><div class="ct">📊 Budget Breakdown</div><div id="sumBars"></div></div>
     <div class="card"><div class="ct">✅ Budget Health</div><div class="hg" id="hGrid"></div></div>
@@ -228,7 +278,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 <script>
 // ── STATE ──────────────────────────────────────────────
-const S={city:'',data:null,days:7,ppl:1,acts:[],
+const S={city:'',data:null,days:7,ppl:1,acts:[],mealStyle:'out',transportStyle:'auto',
   bud:{
     flights:    {est:0,act:0,note:'',pp:0},
     hotel:      {est:0,act:0,note:'',pn:0,nights:7},
@@ -769,6 +819,56 @@ tips:['San Diego has year-round great weather — pack a light jacket for evenin
 'Parking downtown is expensive — use the MTS trolley or rideshare to reach the Gaslamp and Balboa Park.'],
 checklist:['Book San Diego Zoo tickets online (save vs. gate price)','Reserve popular restaurants in the Gaslamp/Little Italy','Purchase travel insurance','Download Uber/Lyft for getting around','Pack reef-safe sunscreen','Bring a light jacket — evenings near the coast are cool year-round']};
 
+DB.atlanta={city:'Atlanta',country:'USA',currency:'USD',
+overview:"The capital of the South blends civil-rights history, a booming food and music scene, and lush urban greenery. As the world's busiest airport hub, Atlanta is one of the cheapest US cities to fly into from almost anywhere.",
+bestTime:'March–May or September–November',visaInfo:'No visa required for US citizens — domestic travel',
+fl:[180,320,900,2400,'Round-trip; ATL is a major hub with cheap, frequent fares from most US cities'],
+ac:[35,95,170,400,'Per night. Midtown and Downtown are central; Buckhead is upscale.'],
+fo:[10,26,55,120,'Per person/day. Legendary Southern food, soul food, and a strong BBQ scene.'],
+tr:[4,18,24,60,'MARTA rail connects the airport to Downtown/Midtown cheaply; rideshare for the rest.'],
+acts:[
+['World of Coca-Cola','culture',20,'Interactive museum of the iconic brand with a tasting room of 100+ global flavors.','2 hrs',true],
+['Georgia Aquarium','nature',45,'One of the world\'s largest aquariums — whale sharks, beluga whales, and manta rays.','3 hrs',true],
+['MLK Jr. National Historical Park','culture',0,'Birth home, church, and tomb of Dr. King — free and deeply moving.','2 hrs',true],
+['Atlanta BeltLine Eastside Trail','nature',0,'Walk or bike a former railway lined with murals, breweries, and food halls.','2–3 hrs',true],
+['Ponce City Market','food',20,'Historic Sears building turned into a buzzing food hall and rooftop games.','2 hrs',true],
+['Piedmont Park & Botanical Garden','nature',0,'Atlanta\'s green heart with skyline views; the adjacent garden has a canopy walk.','2 hrs',false],
+['Center for Civil and Human Rights','culture',20,'Powerful museum linking the US civil-rights movement to global human rights.','2 hrs',false],
+['Fox Theatre Show','nightlife',60,'Catch a concert or Broadway tour in the opulent 1929 Moorish movie palace.','2.5 hrs',false],
+['Southern Food Tour — Sweet Auburn','food',45,'Fried chicken, soul food, and peach cobbler with a local guide.','3 hrs',false],
+['College Football Hall of Fame','culture',25,'Interactive shrine to the college game right beside Centennial Olympic Park.','2 hrs',false],
+],
+tips:['Flying into ATL is usually cheap — it\'s the world\'s busiest airport with fierce competition.',
+'MARTA rail from the airport to Downtown is only about $2.50 — skip the pricey rideshare.',
+'Many top sights (BeltLine, MLK Park, Piedmont Park) are completely free.',
+'Summers are hot and humid — plan outdoor activities for morning or evening.'],
+checklist:['Book Georgia Aquarium & World of Coca-Cola combo tickets','Load a MARTA Breeze card at the airport','Reserve popular restaurants for weekend evenings','Purchase travel insurance','Download Uber/Lyft for non-transit trips','Pack for humidity — light, breathable clothing']};
+
+DB.hawaii={city:'Honolulu (Oahu)',country:'USA',currency:'USD',
+overview:"Oahu delivers the full Hawaiian dream — world-famous Waikiki Beach, the emerald Ko'olau mountains, sacred surf breaks, and poignant history at Pearl Harbor. Paradise comes at a price, but it's worth every penny.",
+bestTime:'April–May or September–October (fewer crowds, lower prices)',visaInfo:'No visa required for US citizens — domestic travel',
+fl:[400,700,2200,6500,'Round-trip from the mainland; markedly pricier and longer from the East Coast'],
+ac:[70,160,300,750,'Per night. Waikiki is pricey; vacation rentals and the North Shore offer value.'],
+fo:[15,35,75,170,'Per person/day. Groceries are expensive on-island; poke and plate lunches are great value.'],
+tr:[6,25,32,80,'TheBus is cheap and covers Oahu; renting a car is best for exploring beyond Waikiki.'],
+acts:[
+['Pearl Harbor & USS Arizona','culture',0,'Free boat tour to the memorial above the sunken battleship — reserve timed tickets ahead.','3–4 hrs',true],
+['Diamond Head Summit Hike','adventure',5,'Climb the iconic volcanic crater for a sweeping view over Waikiki and the Pacific.','2 hrs',true],
+['Waikiki Beach & Surf Lesson','adventure',75,'Learn to surf where Duke Kahanamoku made the sport famous.','2–3 hrs',true],
+['Hanauma Bay Snorkeling','nature',25,'Snorkel a protected volcanic-crater bay teeming with tropical fish and green turtles.','Half day',true],
+['North Shore Day Trip','nature',0,'Legendary big-wave beaches, shrimp trucks, and the laid-back town of Haleiwa.','Full day',true],
+['Polynesian Cultural Center','culture',80,'Immersive villages of six Pacific island cultures, plus an evening luau and show.','Full day',false],
+['Traditional Luau & Hula','nightlife',130,'Kalua pig, poi, fire-knife dancing, and mai tais at an authentic oceanfront luau.','3 hrs',true],
+['Manoa Falls Rainforest Trail','nature',0,'Lush 1.5-mile hike through jungle to a 150-foot waterfall just outside the city.','2 hrs',false],
+['Iolani Palace','culture',30,'The only royal palace on US soil — home of Hawaii\'s last reigning monarchs.','1.5 hrs',false],
+['Lanikai Beach & Kailua','nature',0,'Powder-soft sand and turquoise water on Oahu\'s stunning windward coast.','Half day',false],
+],
+tips:['Flights and hotels are cheapest in the April–May and September–October shoulder seasons.',
+'Book Pearl Harbor USS Arizona timed tickets well ahead — they\'re free but go fast.',
+'Groceries are pricey on-island; a room with a kitchen and plate-lunch spots save real money.',
+'Rent a car for at least a couple of days to see the North Shore and windward coast.'],
+checklist:['Reserve USS Arizona Memorial timed tickets online','Book a rental car early (prices spike on Oahu)','Reserve a luau in advance','Purchase travel insurance','Pack reef-safe sunscreen (required by Hawaii law)','Bring layers for the Diamond Head and rainforest hikes']};
+
 // ── ALIASES ────────────────────────────────────────────
 const ALIAS={
   'nyc':'new york','new york city':'new york','manhattan':'new york','ny':'new york',
@@ -780,6 +880,8 @@ const ALIAS={
   'sin city':'las vegas',
   'ba':'buenos aires',
   'lon':'london','uk':'london',
+  'atl':'atlanta','atlanta ga':'atlanta','atlanta georgia':'atlanta',
+  'honolulu':'hawaii','oahu':'hawaii','waikiki':'hawaii','maui':'hawaii','hawai':'hawaii','hawaii island':'hawaii',
 };
 
 function lookupCity(raw){
@@ -826,8 +928,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 function sw(btn,id){
   document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
-  ['ov','bud','fl','act','sum'].forEach(t=>document.getElementById('t-'+t).style.display=t===id?'block':'none');
+  ['ov','bud','fl','act','iti','sum'].forEach(t=>document.getElementById('t-'+t).style.display=t===id?'block':'none');
   if(id==='sum') renderSum();
+  if(id==='iti') renderItinerary();
 }
 
 // ── DATE ──────────────────────────────────────────────
@@ -852,7 +955,7 @@ function go(){
   renderFlights(d);
   renderActivities(d.acts);
   document.getElementById('statsRow').style.display='grid';
-  updateStats(); saveState();
+  updateStats(); updateStyleHint(); saveState();
 }
 
 // ── HERO ──────────────────────────────────────────────
@@ -874,6 +977,39 @@ function renderHero(d,found){
   }
 }
 
+// ── PRICING ENGINE ────────────────────────────────────
+// Research-backed multipliers. Sources: KAYAK/NerdWallet 2026 (weekday fares
+// ~13-14% cheaper than weekend, Sun priciest), USDA/BLS 2026 (home cooking ~65%
+// cheaper than restaurants), RideWise 2026 (rideshare = multiples of transit).
+
+// Flight price index by day of week (0=Sun … 6=Sat). Applied to BOTH the
+// departure and return day, then averaged. Domestic peaks Fri/Sun; intl is milder.
+const DOW_DOM=[1.10,0.98,0.90,0.91,0.97,1.08,1.02];   // Sun→Sat
+const DOW_INTL=[1.05,1.00,0.97,0.95,0.96,0.93,1.02];  // intl: Fri cheapest
+// Monthly seasonality index (0=Jan … 11=Dec) for flights + lodging.
+const SEASON=[0.92,0.90,0.98,1.00,1.02,1.12,1.18,1.15,0.95,0.98,1.00,1.10];
+// Meal-style multiplier on the chosen food tier (out = restaurants at that tier).
+const MEAL_MULT={home:0.35,mix:0.62,out:1.00,delivery:1.28};
+const MEAL_LB={home:'🏠 Home-cooked (groceries)',mix:'🥘 Mix of cooking & dining out',out:'🍽️ Mostly restaurants',delivery:'🛵 Delivery apps'};
+// Transport style → index into the city tr array [transit,rideshare,taxi,rental].
+const TRANS_IDX={transit:0,rideshare:1,taxi:2,rental:3};
+const TRANS_LB={transit:'🚇 Public transit',rideshare:'🚗 Rideshare (Uber/Lyft)',taxi:'🚕 Taxi',rental:'🚙 Rental car'};
+
+function isDomestic(d){return (d?.country||'')==='USA';}
+function dowFactor(d){
+  const sd=document.getElementById('sd').value, ed=document.getElementById('ed').value;
+  if(!sd||!ed) return {f:1,dep:null,ret:null};
+  const tbl=isDomestic(d)?DOW_DOM:DOW_INTL;
+  const depDay=new Date(sd+'T00:00').getDay(), retDay=new Date(ed+'T00:00').getDay();
+  return {f:(tbl[depDay]+tbl[retDay])/2,dep:depDay,ret:retDay};
+}
+function seasonFactor(){
+  const sd=document.getElementById('sd').value;
+  if(!sd) return 1;
+  return SEASON[new Date(sd+'T00:00').getMonth()];
+}
+const DAYNAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
 // ── BUDGET TYPE ───────────────────────────────────────
 function applyBudgetType(){
   if(!S.data) return;
@@ -882,24 +1018,33 @@ function applyBudgetType(){
   const fi={b:0,m:1,l:2}[bt];
   const ai={b:1,m:2,l:3}[bt];
   const foi={b:1,m:2,l:3}[bt];
-  const tri={b:0,m:1,l:2}[bt];
-  S.bud.flights.pp=d.fl[fi]; S.bud.flights.est=d.fl[fi]*n;
-  S.bud.hotel.pn=d.ac[ai]; S.bud.hotel.est=d.ac[ai]*S.days;
-  S.bud.food.pd=d.fo[foi]*n; S.bud.food.est=d.fo[foi]*n*S.days;
+  // Transport: explicit style overrides the budget-tier default.
+  const defTri={b:0,m:1,l:2}[bt];
+  const tri=S.transportStyle==='auto'?defTri:TRANS_IDX[S.transportStyle];
+  // Dynamic factors from dates + trip style.
+  const dow=dowFactor(d).f, seas=seasonFactor(), meal=MEAL_MULT[S.mealStyle]||1;
+  const flAdj=dow*seas;
+  S.flFactors={dow,seas,flAdj,meal,tri};
+  S.bud.flights.pp=Math.round(d.fl[fi]*flAdj); S.bud.flights.est=S.bud.flights.pp*n;
+  S.bud.hotel.pn=Math.round(d.ac[ai]*seas); S.bud.hotel.est=S.bud.hotel.pn*S.days;
+  S.bud.food.pd=Math.round(d.fo[foi]*meal*n); S.bud.food.est=S.bud.food.pd*S.days;
   S.bud.transport.pd=d.tr[tri]; S.bud.transport.est=d.tr[tri]*S.days;
   S.bud.insurance.est=Math.round(5*n*S.days);
   const sub=S.bud.flights.est+S.bud.hotel.est+S.bud.food.est+S.bud.transport.est;
   S.bud.misc.est=Math.round(sub*.1);
-  renderBT(); updateStats();
+  renderBT(); updateStats(); updateStyleHint();
+  if(document.getElementById('t-iti').style.display!=='none') renderItinerary();
 }
+function onMeal(){S.mealStyle=document.getElementById('meal').value; if(S.data){applyBudgetType();saveState();}}
+function onTransport(){S.transportStyle=document.getElementById('tstyle').value; if(S.data){applyBudgetType();saveState();}}
 function onPpl(){S.ppl=parseInt(document.getElementById('np').value)||1; if(S.data)applyBudgetType(); else{updateStats();renderBT();}}
 
 // ── BUDGET TABLE ──────────────────────────────────────
 const CATS=[
-  {k:'flights',   ic:'✈️', lb:'Flights',          det:()=>`Round trip × ${S.ppl} traveler(s)`},
-  {k:'hotel',     ic:'🏨', lb:'Accommodation',     det:()=>`$${S.bud.hotel.pn||0}/night × ${S.bud.hotel.nights} nights`},
-  {k:'food',      ic:'🍽️',lb:'Food & Dining',     det:()=>`$${S.bud.food.pd||0}/day × ${S.bud.food.days} days`},
-  {k:'transport', ic:'🚌', lb:'Local Transport',   det:()=>`$${S.bud.transport.pd||0}/day × ${S.bud.transport.days} days`},
+  {k:'flights',   ic:'✈️', lb:'Flights',          det:()=>{const f=S.flFactors;return `Round trip × ${S.ppl} traveler(s)${f?` · dates/season ${pct(f.flAdj)}`:''}`;}},
+  {k:'hotel',     ic:'🏨', lb:'Accommodation',     det:()=>{const f=S.flFactors;return `$${S.bud.hotel.pn||0}/night × ${S.bud.hotel.nights} nights${f&&f.seas!==1?` · season ${pct(f.seas)}`:''}`;}},
+  {k:'food',      ic:'🍽️',lb:'Food & Dining',     det:()=>`${MEAL_LB[S.mealStyle]} · $${S.bud.food.pd||0}/day × ${S.bud.food.days} days`},
+  {k:'transport', ic:'🚌', lb:'Local Transport',   det:()=>{const st=S.transportStyle==='auto'?'auto':S.transportStyle;return `${st==='auto'?'Auto':TRANS_LB[st]} · $${S.bud.transport.pd||0}/day × ${S.bud.transport.days} days`;}},
   {k:'activities',ic:'🎯', lb:'Activities',         det:()=>'Auto-totaled from Activities tab'},
   {k:'shopping',  ic:'🛍️',lb:'Shopping',           det:()=>'Souvenirs & personal items'},
   {k:'insurance', ic:'🛡️',lb:'Travel Insurance',   det:()=>`~$5/person/day`},
@@ -1053,18 +1198,131 @@ function renderSum(){
   }
 }
 
+// ── ITINERARY ─────────────────────────────────────────
+function renderItinerary(){
+  const area=document.getElementById('itiArea');
+  const sd=document.getElementById('sd').value, ed=document.getElementById('ed').value;
+  if(!S.data||!sd||!ed){
+    area.innerHTML='<div class="card empty"><div class="ei">📅</div><h3>No itinerary yet</h3><p>Enter a destination and set your start &amp; end dates to generate a day-by-day plan with predicted daily costs.</p></div>';
+    return;
+  }
+  const d=S.data, n=S.ppl, nights=S.days, displayDays=nights+1;
+  const start=new Date(sd+'T00:00');
+  const foodPd=S.bud.food.pd||0, transPd=S.bud.transport.pd||0, insPd=5*n;
+  const flTot=S.bud.flights.est||0, nightCost=S.bud.hotel.pn||0;
+  // Activities to schedule: checked ones, else must-see. Must-see first.
+  let sched=S.acts.filter(a=>a.checked);
+  if(!sched.length) sched=S.acts.filter(a=>a.mustSee);
+  sched=[...sched].sort((a,b)=>(b.mustSee?1:0)-(a.mustSee?1:0));
+  const byDay=Array.from({length:Math.max(1,nights)},()=>[]);   // activities scheduled on active (night) days
+  sched.forEach((a,i)=>byDay[i%byDay.length].push(a));
+
+  const dow=dowFactor(d), seas=seasonFactor();
+  let runTot=0, rows='';
+  for(let i=0;i<displayDays;i++){
+    const dt=new Date(start); dt.setDate(start.getDate()+i);
+    const wd=dt.getDay(), weekend=(wd===0||wd===6);
+    const isArr=i===0, isDep=i===nights, isNight=i<nights;
+    let dayCost=0, items='';
+    if(isArr){ const out=Math.round(flTot/2); dayCost+=out;
+      items+=itLine('✈️',`Arrive in ${d.city}`,`Outbound flight — ${DAYNAMES[dow.dep]} departure`,out); }
+    if(isNight){
+      dayCost+=nightCost; items+=itLine('🏨','Accommodation',`1 night${nightCost?` @ $${nightCost}`:''}`,nightCost);
+      dayCost+=foodPd; items+=itLine('🍽️',MEAL_LB[S.mealStyle],`Meals for ${n} traveler(s)`,foodPd);
+      dayCost+=transPd; items+=itLine('🚗',TRANS_LB[S.transportStyle==='auto'?['transit','rideshare','taxi'][{b:0,m:1,l:2}[document.getElementById('bt').value]]:S.transportStyle],'Getting around',transPd);
+      dayCost+=insPd;
+      (byDay[i]||[]).forEach(a=>{const c=parseFloat(a.cost)||0;dayCost+=c;
+        items+=itLine(CE[a.category]||'🎯',a.name,`${a.duration||''}${a.mustSee?' · ⭐ Must-see':''}`,c);});
+    }
+    if(isDep){ const ret=Math.round(flTot/2); dayCost+=ret;
+      items+=itLine('🛫',`Depart ${d.city}`,`Return flight — ${DAYNAMES[dow.ret]} departure`,ret); }
+    if(isNight) dayCost+=0; // insurance folded silently into running total
+    runTot+=dayCost;
+    const label=isArr&&isDep?'Arrival & Departure':isArr?'Arrival Day':isDep?'Departure Day':'';
+    rows+=`<div class="dayc">
+      <div class="dayh${weekend?' wknd':''}">
+        <div><div class="dayt">Day ${i+1} — ${DAYNAMES[wd]}, ${dt.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
+          <div class="daysub">${label||'Exploring '+d.city}</div></div>
+        <div style="display:flex;align-items:center;gap:.6rem">
+          <span class="daypill${weekend?' we':''}">${weekend?'Weekend':'Weekday'}</span>
+          <span class="daycost">${$$(dayCost)}</span></div>
+      </div>
+      <div class="dayb">${items||'<div class="itrow"><span class="il2">Travel day — no local costs charged.</span></div>'}
+        ${isNight?`<div class="itrow"><span class="itact"><span class="ico">🛡️</span>Travel insurance</span><span>${$$(insPd)}</span></div>`:''}
+      </div></div>`;
+  }
+  const flNote=`Flights adjusted <strong>${pct(dow.f*seas)}</strong> for your <strong>${DAYNAMES[dow.dep]}→${DAYNAMES[dow.ret]}</strong> dates in <strong>${start.toLocaleDateString('en-US',{month:'long'})}</strong> (${isDomestic(d)?'domestic':'international'} routing).`;
+  area.innerHTML=`
+    <div class="card">
+      <div class="ct">📅 ${nights}-Night Itinerary — ${d.city}</div>
+      <div class="banner" style="background:#eef2ff;border-color:#c7d2fe;color:#3730a3">${flNote} Weekend days are highlighted; totals reflect your meal &amp; transport style.</div>
+      <div class="hg" style="margin-bottom:1rem">
+        <div class="ht"><div class="hl">Predicted Trip Total</div><div class="hv" style="color:var(--p)">${$$(runTot + (S.bud.shopping.est||0) + (S.bud.misc.est||0))}</div></div>
+        <div class="ht"><div class="hl">Day-by-Day Subtotal</div><div class="hv" style="color:var(--c)">${$$(runTot)}</div></div>
+        <div class="ht"><div class="hl">Avg / Day</div><div class="hv" style="color:var(--a)">${$$(runTot/displayDays)}</div></div>
+      </div>
+      ${rows}
+      <p style="font-size:.74rem;color:var(--m);margin-top:.4rem">Shopping (${$$(S.bud.shopping.est||0)}) and the emergency buffer (${$$(S.bud.misc.est||0)}) are trip-level and added to the predicted total above.</p>
+    </div>
+    ${whatIfPanel(d)}`;
+  updateStyleHint();
+}
+function itLine(ico,name,sub,cost){
+  return `<div class="itrow"><span class="itact"><span class="ico">${ico}</span><span>${name}${sub?` <span class="il2">— ${sub}</span>`:''}</span></span><span>${cost?$$(cost):'Free'}</span></div>`;
+}
+function pct(f){const p=Math.round((f-1)*100);return (p>=0?'+':'')+p+'%';}
+function saveLbl(diff){
+  if(diff===0) return '';
+  const col=diff<0?'var(--g)':'var(--r)';
+  return `<span style="color:${col}">${diff<0?'−':'+'}${$$(Math.abs(diff))}</span>`;
+}
+
+function whatIfPanel(d){
+  const bt=document.getElementById('bt').value, n=S.ppl;
+  const foi={b:1,m:2,l:3}[bt], base=d.fo[foi], curMeal=S.mealStyle;
+  const foodDays=S.days;
+  const mealRows=Object.keys(MEAL_MULT).map(s=>{
+    const total=Math.round(base*MEAL_MULT[s]*n)*foodDays;
+    const cur=Math.round(base*MEAL_MULT[curMeal]*n)*foodDays;
+    const diff=total-cur;
+    return `<div class="wopt${s===curMeal?' on':''}"><span>${MEAL_LB[s]}</span><span class="wv">${$$(total)}${s!==curMeal?` <span class="wsave">${saveLbl(diff)}</span>`:''}</span></div>`;
+  }).join('');
+  const defTri={b:0,m:1,l:2}[bt], curT=S.transportStyle==='auto'?['transit','rideshare','taxi','rental'][defTri]:S.transportStyle;
+  const transRows=Object.keys(TRANS_IDX).map(s=>{
+    const total=d.tr[TRANS_IDX[s]]*S.days, cur=d.tr[TRANS_IDX[curT]]*S.days, diff=total-cur;
+    return `<div class="wopt${s===curT?' on':''}"><span>${TRANS_LB[s]}</span><span class="wv">${$$(total)}${s!==curT?` <span class="wsave">${saveLbl(diff)}</span>`:''}</span></div>`;
+  }).join('');
+  return `<div class="card"><div class="ct">🔀 What-If: Cost Levers</div>
+    <p style="font-size:.8rem;color:var(--m);margin-bottom:.9rem">See how your choices change the trip total over <strong>${S.days} day(s)</strong>. Your current pick is highlighted; savings are vs. your current selection.</p>
+    <div class="whatif">
+      <div class="wcard"><h4>🍽️ Food — meal style</h4>${mealRows}</div>
+      <div class="wcard"><h4>🚗 Transport — getting around</h4>${transRows}</div>
+    </div></div>`;
+}
+function updateStyleHint(){
+  const el=document.getElementById('styleHint'); if(!el) return;
+  if(!S.data){el.textContent='Pick dates & a destination to see how choices change your cost.';return;}
+  const d=S.data, f=S.flFactors||{};
+  const dw=dowFactor(d);
+  el.innerHTML=`Flights <strong>${pct((f.flAdj||1))}</strong> vs. baseline for your <strong>${DAYNAMES[dw.dep]}→${DAYNAMES[dw.ret]}</strong> dates · meals <strong>×${(MEAL_MULT[S.mealStyle]||1)}</strong>`;
+}
+
 // ── PERSIST ───────────────────────────────────────────
-function saveState(){localStorage.setItem('tb_state',JSON.stringify({city:S.city,data:S.data,days:S.days,bud:S.bud,acts:S.acts}));}
+function saveState(){localStorage.setItem('tb_state',JSON.stringify({city:S.city,data:S.data,days:S.days,bud:S.bud,acts:S.acts,mealStyle:S.mealStyle,transportStyle:S.transportStyle}));}
 function loadState(){
   const raw=localStorage.getItem('tb_state'); if(!raw) return;
   try{
     const d=JSON.parse(raw); if(!d.city) return;
     document.getElementById('ci').value=d.city;
     S.city=d.city; S.data=d.data; S.days=d.days;
+    S.mealStyle=d.mealStyle||'out'; S.transportStyle=d.transportStyle||'auto';
+    document.getElementById('meal').value=S.mealStyle;
+    document.getElementById('tstyle').value=S.transportStyle;
     S.bud=Object.assign({},S.bud,d.bud); S.acts=d.acts||[];
-    if(d.data){renderHero(d.data,true); renderFlights(d.data); document.getElementById('statsRow').style.display='grid';}
+    if(d.data){renderHero(d.data,true); renderFlights(d.data); document.getElementById('statsRow').style.display='grid';
+      applyBudgetType();}
     if(S.acts.length){drawActs('all');}
-    renderBT(); updateStats();
+    renderBT(); updateStats(); updateStyleHint();
   }catch(e){console.warn(e);}
 }
 
