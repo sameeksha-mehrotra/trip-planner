@@ -922,6 +922,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('sd').value=t.toISOString().split('T')[0];
   document.getElementById('ed').value=e.toISOString().split('T')[0];
   calcDays(); renderBT(); loadState();
+  // any input/select/checkbox change anywhere on the page auto-saves
+  document.addEventListener('input',queueSave);
+  document.addEventListener('change',queueSave);
 });
 
 // ── TAB SWITCH ─────────────────────────────────────────
@@ -1110,7 +1113,7 @@ function renderFlights(d){
 function pickF(el,p){
   document.querySelectorAll('.fc').forEach(c=>c.classList.remove('on'));
   el.classList.add('on');
-  S.bud.flights.est=p*S.ppl; renderBT(); updateStats();
+  S.bud.flights.est=p*S.ppl; renderBT(); updateStats(); queueSave();
 }
 
 // ── ACTIVITIES ────────────────────────────────────────
@@ -1151,7 +1154,7 @@ function calcActTot(){
   S.bud.activities.est=tot;
   // Update activities row in budget table if rendered
   document.querySelectorAll('#bBody .ai.ro').forEach(el=>el.value=Math.round(tot));
-  recalc(); updateStats();
+  recalc(); updateStats(); queueSave();
 }
 function fAct(cat,btn){
   document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); drawActs(cat);
@@ -1161,7 +1164,7 @@ function addAct(){
   S.acts.push({id:`u${Date.now()}`,name,category:document.getElementById('nc').value,cost:parseFloat(document.getElementById('nco').value)||0,duration:document.getElementById('nd').value,description:document.getElementById('ndesc').value||name,mustSee:false,checked:true});
   ['nn','nco','nd','ndesc'].forEach(id=>document.getElementById(id).value='');
   document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on')); document.querySelector('.fb').classList.add('on');
-  drawActs('all');
+  drawActs('all'); queueSave();
 }
 
 // ── STATS ─────────────────────────────────────────────
@@ -1308,22 +1311,62 @@ function updateStyleHint(){
 }
 
 // ── PERSIST ───────────────────────────────────────────
-function saveState(){localStorage.setItem('tb_state',JSON.stringify({city:S.city,data:S.data,days:S.days,bud:S.bud,acts:S.acts,mealStyle:S.mealStyle,transportStyle:S.transportStyle}));}
+let _loading=false;                       // suppress saves while restoring
+const val=id=>{const el=document.getElementById(id);return el?el.value:'';};
+// read every checklist checkbox, keyed by its label text (survives re-render/reorder)
+function collectChecklist(){
+  const m={};
+  document.querySelectorAll('#clItems .cli').forEach(row=>{
+    const cb=row.querySelector('input[type=checkbox]'), lb=row.querySelector('label');
+    if(cb&&lb) m[lb.textContent]=cb.checked;
+  });
+  return m;
+}
+function applyChecklist(m){
+  if(!m) return;
+  document.querySelectorAll('#clItems .cli').forEach(row=>{
+    const cb=row.querySelector('input[type=checkbox]'), lb=row.querySelector('label');
+    if(cb&&lb&&m[lb.textContent]!==undefined) cb.checked=m[lb.textContent];
+  });
+}
+function saveState(){
+  if(_loading) return;
+  localStorage.setItem('tb_state',JSON.stringify({
+    city:S.city,data:S.data,days:S.days,ppl:S.ppl,
+    tname:val('tname'),sd:val('sd'),ed:val('ed'),np:val('np'),bt:val('bt'),
+    mealStyle:S.mealStyle,transportStyle:S.transportStyle,
+    bud:S.bud,acts:S.acts,checklist:collectChecklist(),
+  }));
+}
+let _saveT;
+function queueSave(){clearTimeout(_saveT);_saveT=setTimeout(saveState,250);}
 function loadState(){
   const raw=localStorage.getItem('tb_state'); if(!raw) return;
+  _loading=true;
   try{
-    const d=JSON.parse(raw); if(!d.city) return;
-    document.getElementById('ci').value=d.city;
-    S.city=d.city; S.data=d.data; S.days=d.days;
+    const d=JSON.parse(raw);
+    // top controls restore even before a city is chosen
+    if(d.tname!==undefined) document.getElementById('tname').value=d.tname;
+    if(d.sd) document.getElementById('sd').value=d.sd;
+    if(d.ed) document.getElementById('ed').value=d.ed;
+    if(d.np) document.getElementById('np').value=d.np;
+    if(d.bt) document.getElementById('bt').value=d.bt;
     S.mealStyle=d.mealStyle||'out'; S.transportStyle=d.transportStyle||'auto';
     document.getElementById('meal').value=S.mealStyle;
     document.getElementById('tstyle').value=S.transportStyle;
+    S.ppl=parseInt(d.np)||d.ppl||1;
+    calcDays();
+    if(!d.city){return;}
+    document.getElementById('ci').value=d.city;
+    S.city=d.city; S.data=d.data; S.days=d.days;
+    // restore the exact saved budget (keeps manual estimate/actual/note edits)
     S.bud=Object.assign({},S.bud,d.bud); S.acts=d.acts||[];
-    if(d.data){renderHero(d.data,true); renderFlights(d.data); document.getElementById('statsRow').style.display='grid';
-      applyBudgetType();}
+    if(d.data){renderHero(d.data,true); renderFlights(d.data); document.getElementById('statsRow').style.display='grid';}
     if(S.acts.length){drawActs('all');}
     renderBT(); updateStats(); updateStyleHint();
+    applyChecklist(d.checklist);
   }catch(e){console.warn(e);}
+  finally{_loading=false;}
 }
 
 // ── UTILS ─────────────────────────────────────────────
