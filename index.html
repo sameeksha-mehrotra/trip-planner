@@ -69,6 +69,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .it .il{font-size:.73rem;color:var(--m);margin-bottom:.25rem}
 .it .ip{font-size:1.15rem;font-weight:700;color:var(--p)}
 .it .iu{font-size:.7rem;font-weight:400}
+/* amex points */
+.amex{margin-top:1rem;border:1.5px solid #d4e3ff;background:linear-gradient(135deg,#eef4ff,#f7fbff);border-radius:11px;padding:.9rem 1rem}
+.amexhd{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;font-weight:700;font-size:.9rem;color:#1e3a8a;margin-bottom:.75rem}
+.amextog{display:flex;align-items:center;gap:.4rem;font-size:.8rem;font-weight:600;color:var(--t);cursor:pointer}
+.amextog input{width:16px;height:16px;cursor:pointer;accent-color:#2563eb}
+.amexrow{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:.7rem}
+.amexcol{display:flex;flex-direction:column;gap:.25rem}
+.aml{font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;color:var(--m)}
+.amv{font-size:1.05rem;font-weight:700;color:#1d4ed8}
+.amexinp{width:100%;padding:.35rem .5rem;border:1px solid #bcd0f5;border-radius:6px;font-size:.95rem;font-weight:700;color:#1d4ed8;outline:none}
+.amexinp:focus{border-color:#2563eb}
+.amexnote{font-size:.78rem;color:var(--m);line-height:1.5}
+.amexnote.ok{color:#047857;font-weight:600}
+.amexnote.warn{color:#b45309;font-weight:600}
+@media(max-width:560px){.amexrow{grid-template-columns:1fr 1fr}}
 /* activities */
 .fbar{display:flex;gap:.45rem;flex-wrap:wrap;margin-bottom:1rem}
 .fb{padding:.35rem .85rem;border:1px solid var(--b);border-radius:20px;font-size:.78rem;cursor:pointer;background:var(--w);color:var(--m);transition:all .18s}
@@ -279,8 +294,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <script>
 // ── STATE ──────────────────────────────────────────────
 const S={city:'',data:null,days:7,ppl:1,acts:[],mealStyle:'out',transportStyle:'auto',
+  amex:{on:false,pts:37298,used:0,cover:0}, // Membership Rewards: pay flights with points
   bud:{
-    flights:    {est:0,act:0,note:'',pp:0},
+    flights:    {est:0,act:0,note:'',pp:0,gross:0},
     hotel:      {est:0,act:0,note:'',pn:0,nights:7},
     food:       {est:0,act:0,note:'',pd:0,days:7},
     transport:  {est:0,act:0,note:'',pd:0,days:7},
@@ -1028,23 +1044,60 @@ function applyBudgetType(){
   const dow=dowFactor(d).f, seas=seasonFactor(), meal=MEAL_MULT[S.mealStyle]||1;
   const flAdj=dow*seas;
   S.flFactors={dow,seas,flAdj,meal,tri};
-  S.bud.flights.pp=Math.round(d.fl[fi]*flAdj); S.bud.flights.est=S.bud.flights.pp*n;
+  S.bud.flights.pp=Math.round(d.fl[fi]*flAdj); S.bud.flights.gross=S.bud.flights.pp*n; amexApply();
   S.bud.hotel.pn=Math.round(d.ac[ai]*seas); S.bud.hotel.est=S.bud.hotel.pn*S.days;
   S.bud.food.pd=Math.round(d.fo[foi]*meal*n); S.bud.food.est=S.bud.food.pd*S.days;
   S.bud.transport.pd=d.tr[tri]; S.bud.transport.est=d.tr[tri]*S.days;
   S.bud.insurance.est=Math.round(5*n*S.days);
   const sub=S.bud.flights.est+S.bud.hotel.est+S.bud.food.est+S.bud.transport.est;
   S.bud.misc.est=Math.round(sub*.1);
-  renderBT(); updateStats(); updateStyleHint();
+  renderBT(); updateStats(); updateStyleHint(); renderAmex();
   if(document.getElementById('t-iti').style.display!=='none') renderItinerary();
 }
+// ── AMEX MEMBERSHIP REWARDS ───────────────────────────
+const AMEX_RATE=0.01; // $ value per point (1¢/pt — standard travel redemption)
+function amexApply(){
+  const g=S.bud.flights.gross||0;
+  if(S.amex.on){
+    const need=Math.round(g*100);
+    S.amex.used=Math.min(S.amex.pts||0,need);
+    S.amex.cover=+(S.amex.used*AMEX_RATE).toFixed(2);
+  }else{S.amex.used=0;S.amex.cover=0;}
+  S.bud.flights.est=Math.max(0,g-S.amex.cover);
+}
+function renderAmex(){
+  const box=document.getElementById('amexBox'); if(!box) return;
+  const g=S.bud.flights.gross||0, need=Math.round(g*100), avail=S.amex.pts||0;
+  const enough=avail>=need, used=S.amex.on?Math.min(avail,need):0;
+  const left=avail-used, covered=+(used*AMEX_RATE).toFixed(2), remainCash=Math.max(0,g-covered);
+  box.innerHTML=`
+    <div class="amexhd"><span>💳 Amex Membership Rewards</span>
+      <label class="amextog"><input type="checkbox" id="amexOn" ${S.amex.on?'checked':''} onchange="toggleAmex(this.checked)"> Cover flights with points</label>
+    </div>
+    <div class="amexrow">
+      <div class="amexcol"><span class="aml">Points available</span><input type="number" id="amexPts" class="amexinp" value="${avail}" min="0" step="1" onchange="setAmexPts(this.value)"></div>
+      <div class="amexcol"><span class="aml">Flight cost ($)</span><input type="number" id="amexGross" class="amexinp" value="${g}" min="0" step="0.01" onchange="setAmexGross(this.value)"></div>
+      <div class="amexcol"><span class="aml">Points needed</span><span class="amv">${need.toLocaleString()}</span></div>
+      <div class="amexcol"><span class="aml">${S.amex.on?'Points remaining':'Remaining if redeemed'}</span><span class="amv" style="color:${enough?'var(--g)':'var(--r)'}">${left.toLocaleString()}</span></div>
+    </div>
+    <div class="amexnote ${S.amex.on?(enough?'ok':'warn'):''}">${
+      S.amex.on
+        ? (enough
+            ? `✅ ${used.toLocaleString()} pts redeemed (worth ${$$(covered)}) — flights out-of-pocket now ${$$(remainCash)}`
+            : `⚠️ Not enough points — ${used.toLocaleString()} pts cover ${$$(covered)}; ${$$(remainCash)} still due in cash`)
+        : `Redeem at 1¢/point (standard travel value). This flight = ${need.toLocaleString()} pts of your ${avail.toLocaleString()}.`
+    }</div>`;
+}
+function toggleAmex(on){S.amex.on=on; amexApply(); renderBT(); updateStats(); renderAmex(); if(document.getElementById('t-iti').style.display!=='none')renderItinerary(); queueSave();}
+function setAmexPts(v){S.amex.pts=Math.max(0,parseInt(v)||0); amexApply(); renderBT(); updateStats(); renderAmex(); queueSave();}
+function setAmexGross(v){S.bud.flights.gross=Math.max(0,parseFloat(v)||0); amexApply(); renderBT(); updateStats(); renderAmex(); queueSave();}
 function onMeal(){S.mealStyle=document.getElementById('meal').value; if(S.data){applyBudgetType();saveState();}}
 function onTransport(){S.transportStyle=document.getElementById('tstyle').value; if(S.data){applyBudgetType();saveState();}}
 function onPpl(){S.ppl=parseInt(document.getElementById('np').value)||1; if(S.data)applyBudgetType(); else{updateStats();renderBT();}}
 
 // ── BUDGET TABLE ──────────────────────────────────────
 const CATS=[
-  {k:'flights',   ic:'✈️', lb:'Flights',          det:()=>{const f=S.flFactors;return `Round trip × ${S.ppl} traveler(s)${f?` · dates/season ${pct(f.flAdj)}`:''}`;}},
+  {k:'flights',   ic:'✈️', lb:'Flights',          det:()=>{const f=S.flFactors;const a=S.amex.on&&S.amex.used>0?` · 💳 ${S.amex.used.toLocaleString()} Amex pts redeemed (−${$$(S.amex.cover)})`:'';return `Round trip × ${S.ppl} traveler(s)${f?` · dates/season ${pct(f.flAdj)}`:''}${a}`;}},
   {k:'hotel',     ic:'🏨', lb:'Accommodation',     det:()=>{const f=S.flFactors;return `$${S.bud.hotel.pn||0}/night × ${S.bud.hotel.nights} nights${f&&f.seas!==1?` · season ${pct(f.seas)}`:''}`;}},
   {k:'food',      ic:'🍽️',lb:'Food & Dining',     det:()=>`${MEAL_LB[S.mealStyle]} · $${S.bud.food.pd||0}/day × ${S.bud.food.days} days`},
   {k:'transport', ic:'🚌', lb:'Local Transport',   det:()=>{const st=S.transportStyle==='auto'?'auto':S.transportStyle;return `${st==='auto'?'Auto':TRANS_LB[st]} · $${S.bud.transport.pd||0}/day × ${S.bud.transport.days} days`;}},
@@ -1087,6 +1140,7 @@ function renderFlights(d){
             <div class="fcl">${l}</div><div class="fcp">${$$(p)}</div><div class="fcs">${s}</div>
           </div>`).join('')}
       </div>
+      <div class="amex" id="amexBox"></div>
     </div>
     <div class="card"><div class="ct">🏨 Accommodation in ${d.city}</div>
       <div class="igrid">
@@ -1109,11 +1163,13 @@ function renderFlights(d){
       </div>
       <p style="font-size:.78rem;color:var(--m);margin-top:.8rem">${fn2}</p>
     </div>`;
+  renderAmex();
 }
 function pickF(el,p){
   document.querySelectorAll('.fc').forEach(c=>c.classList.remove('on'));
   el.classList.add('on');
-  S.bud.flights.est=p*S.ppl; renderBT(); updateStats(); queueSave();
+  S.bud.flights.pp=p; S.bud.flights.gross=p*S.ppl; amexApply();
+  renderBT(); updateStats(); renderAmex(); queueSave();
 }
 
 // ── ACTIVITIES ────────────────────────────────────────
@@ -1213,10 +1269,10 @@ function renderItinerary(){
   const start=new Date(sd+'T00:00');
   const foodPd=S.bud.food.pd||0, transPd=S.bud.transport.pd||0, insPd=5*n;
   const flTot=S.bud.flights.est||0, nightCost=S.bud.hotel.pn||0;
-  // Activities to schedule: checked ones, else must-see. Must-see first.
-  let sched=S.acts.filter(a=>a.checked);
-  if(!sched.length) sched=S.acts.filter(a=>a.mustSee);
-  sched=[...sched].sort((a,b)=>(b.mustSee?1:0)-(a.mustSee?1:0));
+  // Schedule ONLY the activities selected on the Activities tab, so the
+  // day-by-day total matches the Budget exactly. Must-see first for ordering.
+  const sched=[...S.acts.filter(a=>a.checked)].sort((a,b)=>(b.mustSee?1:0)-(a.mustSee?1:0));
+  const noActs=sched.length===0;
   const byDay=Array.from({length:Math.max(1,nights)},()=>[]);   // activities scheduled on active (night) days
   sched.forEach((a,i)=>byDay[i%byDay.length].push(a));
 
@@ -1237,7 +1293,7 @@ function renderItinerary(){
       (byDay[i]||[]).forEach(a=>{const c=parseFloat(a.cost)||0;dayCost+=c;
         items+=itLine(CE[a.category]||'🎯',a.name,`${a.duration||''}${a.mustSee?' · ⭐ Must-see':''}`,c);});
     }
-    if(isDep){ const ret=Math.round(flTot/2); dayCost+=ret;
+    if(isDep){ const ret=flTot-Math.round(flTot/2); dayCost+=ret;
       items+=itLine('🛫',`Depart ${d.city}`,`Return flight — ${DAYNAMES[dow.ret]} departure`,ret); }
     if(isNight) dayCost+=0; // insurance folded silently into running total
     runTot+=dayCost;
@@ -1258,7 +1314,7 @@ function renderItinerary(){
   area.innerHTML=`
     <div class="card">
       <div class="ct">📅 ${nights}-Night Itinerary — ${d.city}</div>
-      <div class="banner" style="background:#eef2ff;border-color:#c7d2fe;color:#3730a3">${flNote} Weekend days are highlighted; totals reflect your meal &amp; transport style.</div>
+      <div class="banner" style="background:#eef2ff;border-color:#c7d2fe;color:#3730a3">${flNote} Weekend days are highlighted; totals reflect your meal &amp; transport style.${noActs?' <strong>Tip:</strong> pick activities on the 🎯 Activities tab to slot them into your days.':''}</div>
       <div class="hg" style="margin-bottom:1rem">
         <div class="ht"><div class="hl">Predicted Trip Total</div><div class="hv" style="color:var(--p)">${$$(runTot + (S.bud.shopping.est||0) + (S.bud.misc.est||0))}</div></div>
         <div class="ht"><div class="hl">Day-by-Day Subtotal</div><div class="hv" style="color:var(--c)">${$$(runTot)}</div></div>
@@ -1334,7 +1390,7 @@ function saveState(){
   localStorage.setItem('tb_state',JSON.stringify({
     city:S.city,data:S.data,days:S.days,ppl:S.ppl,
     tname:val('tname'),sd:val('sd'),ed:val('ed'),np:val('np'),bt:val('bt'),
-    mealStyle:S.mealStyle,transportStyle:S.transportStyle,
+    mealStyle:S.mealStyle,transportStyle:S.transportStyle,amex:S.amex,
     bud:S.bud,acts:S.acts,checklist:collectChecklist(),
   }));
 }
@@ -1354,6 +1410,7 @@ function loadState(){
     S.mealStyle=d.mealStyle||'out'; S.transportStyle=d.transportStyle||'auto';
     document.getElementById('meal').value=S.mealStyle;
     document.getElementById('tstyle').value=S.transportStyle;
+    if(d.amex) S.amex=Object.assign({on:false,pts:37298,used:0,cover:0},d.amex);
     S.ppl=parseInt(d.np)||d.ppl||1;
     calcDays();
     if(!d.city){return;}
@@ -1361,6 +1418,7 @@ function loadState(){
     S.city=d.city; S.data=d.data; S.days=d.days;
     // restore the exact saved budget (keeps manual estimate/actual/note edits)
     S.bud=Object.assign({},S.bud,d.bud); S.acts=d.acts||[];
+    amexApply(); // reconcile flight out-of-pocket with restored points
     if(d.data){renderHero(d.data,true); renderFlights(d.data); document.getElementById('statsRow').style.display='grid';}
     if(S.acts.length){drawActs('all');}
     renderBT(); updateStats(); updateStyleHint();
