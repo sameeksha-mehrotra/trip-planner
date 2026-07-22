@@ -1269,10 +1269,10 @@ function renderItinerary(){
   const start=new Date(sd+'T00:00');
   const foodPd=S.bud.food.pd||0, transPd=S.bud.transport.pd||0, insPd=5*n;
   const flTot=S.bud.flights.est||0, nightCost=S.bud.hotel.pn||0;
-  // Activities to schedule: checked ones, else must-see. Must-see first.
-  let sched=S.acts.filter(a=>a.checked);
-  if(!sched.length) sched=S.acts.filter(a=>a.mustSee);
-  sched=[...sched].sort((a,b)=>(b.mustSee?1:0)-(a.mustSee?1:0));
+  // Schedule ONLY the activities selected on the Activities tab, so the
+  // day-by-day total matches the Budget exactly. Must-see first for ordering.
+  const sched=[...S.acts.filter(a=>a.checked)].sort((a,b)=>(b.mustSee?1:0)-(a.mustSee?1:0));
+  const noActs=sched.length===0;
   const byDay=Array.from({length:Math.max(1,nights)},()=>[]);   // activities scheduled on active (night) days
   sched.forEach((a,i)=>byDay[i%byDay.length].push(a));
 
@@ -1293,7 +1293,7 @@ function renderItinerary(){
       (byDay[i]||[]).forEach(a=>{const c=parseFloat(a.cost)||0;dayCost+=c;
         items+=itLine(CE[a.category]||'🎯',a.name,`${a.duration||''}${a.mustSee?' · ⭐ Must-see':''}`,c);});
     }
-    if(isDep){ const ret=Math.round(flTot/2); dayCost+=ret;
+    if(isDep){ const ret=flTot-Math.round(flTot/2); dayCost+=ret;
       items+=itLine('🛫',`Depart ${d.city}`,`Return flight — ${DAYNAMES[dow.ret]} departure`,ret); }
     if(isNight) dayCost+=0; // insurance folded silently into running total
     runTot+=dayCost;
@@ -1314,7 +1314,7 @@ function renderItinerary(){
   area.innerHTML=`
     <div class="card">
       <div class="ct">📅 ${nights}-Night Itinerary — ${d.city}</div>
-      <div class="banner" style="background:#eef2ff;border-color:#c7d2fe;color:#3730a3">${flNote} Weekend days are highlighted; totals reflect your meal &amp; transport style.</div>
+      <div class="banner" style="background:#eef2ff;border-color:#c7d2fe;color:#3730a3">${flNote} Weekend days are highlighted; totals reflect your meal &amp; transport style.${noActs?' <strong>Tip:</strong> pick activities on the 🎯 Activities tab to slot them into your days.':''}</div>
       <div class="hg" style="margin-bottom:1rem">
         <div class="ht"><div class="hl">Predicted Trip Total</div><div class="hv" style="color:var(--p)">${$$(runTot + (S.bud.shopping.est||0) + (S.bud.misc.est||0))}</div></div>
         <div class="ht"><div class="hl">Day-by-Day Subtotal</div><div class="hv" style="color:var(--c)">${$$(runTot)}</div></div>
